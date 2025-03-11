@@ -40,5 +40,5 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 ## 📂 Estrutura do Projeto (em breve)
 
-```shell
-git clone <link do repositório> (em breve)
+<pre><code>git clone <link do repositório> (em breve)</code></pre> 
+
