@@ -42,3 +42,57 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 <pre><code>git clone <link do repositório> (em breve)</code></pre> 
 
+## 🗂️ Entrega 01
+## 🗂️ Entrega 01
+
+<details>
+<summary><b>📌 Histórias do Usuário</b></summary>
+
+<br>
+
+| Nº | Perfil                    | História                                     |
+|----|---------------------------|----------------------------------------------|
+| 1  | Morador                   | Cadastro/Login                               |
+| 2  | Morador                   | Reserva de áreas comuns                      |
+| 3  | Morador                   | Registro de problemas de manutenção          |
+| 4  | Funcionário Administrativo| Cadastro de novos moradores                  |
+| 5  | Funcionário Administrativo| Registrar pagamentos das taxas               |
+| 6  | Síndico                   | Envio de avisos e comunicados oficiais       |
+| 7  | Síndico                   | Agendamento e registro de assembleias        |
+| 8  | Morador                   | Consulta histórico financeiro                |
+
+</details>
+
+<details>
+<summary><b>🖥️ Protótipo Lo-Fi</b></summary>
+
+<br>
+
+📁 **Protótipos iniciais Lo-Fi das principais telas**  
+🔗 [Clique aqui para visualizar os protótipos](https://drive.google.com/file/d/1izdiABJx6wsdaE88PcFmbcOxtpXIwX8a/view?usp=sharing)
+
+**Telas prototipadas:**
+- Tela de Login  
+- Tela Inicial (Dashboard do Morador)  
+- Cadastro de Morador  
+- Registro de Pagamentos  
+- Tela de Reservas das Áreas Comuns  
+- Tela de Registro de Manutenção  
+- Avisos e Comunicados (Síndico/Admin)  
+
+</details>
+
+<details>
+<summary><b>🎥 Screencast - Entrega 01</b></summary>
+
+<br>
+
+▶️ **Demonstração das funcionalidades entregues nesta etapa**  
+🔗 [Clique aqui para assistir o Screencast](https://drive.google.com/file/d/1e8ST3k2zukdWUtkFqH3xeKJ0zuZzv1Xj/view?usp=sharing)
+
+**Conteúdo abordado no Screencast:**
+- Apresentação das Histórias do Usuário  
+- Explicação rápida dos protótipos Lo-Fi  
+- Apresentação dos próximos passos do projeto  
+
+</details>
