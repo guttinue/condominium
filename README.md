@@ -17,6 +17,18 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 ---
 
+## 👥 Participantes
+
+- Arthur Barros
+- Dácio Augusto
+- Leonardo Granja  
+- João Vitor Sacramento 
+- Thiago Pinto  
+- Tomás Brandão  
+ 
+
+---
+
 ## 📋 Funcionalidades Previstas
 
 - Cadastro e gestão de moradores.
