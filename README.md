@@ -139,7 +139,9 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 <details>
 <summary><b>🐞 Issue/Bug Tracker</b></summary>
 
-- [Visualizar o Issue Tracker atualizado aqui](./entregas/issue1.pdf)
+⚒️ Utilizamos o ClickUp como ferramenta de gerenciamento de Bugs e Tarefas
+
+- [Visualizar o Issue Tracker atualizado aqui](./entregas/issue_tracker.png)
 </details>
 
 <details>
