@@ -111,3 +111,44 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 - Apresentação dos próximos passos do projeto  
 
 </details>
+
+## 🗂️ Entrega 2
+
+<details>
+<summary><b>📖 Histórias Implementadas:</b></summary>
+
+- **Cadastro de Moradores e Dependentes** (com persistência em memória)
+- **Reserva de Áreas Comuns** (com persistência em memória)
+</details>
+
+<details>
+<summary><b>🛠️ Ambiente de Versionamento</b></summary>
+
+- Ambiente versionado no GitHub com commits frequentes (mínimo semanal).
+
+🔗 [Acesse o histórico de commits aqui](https://github.com/guttinue/condominium/commits/main)
+</details>
+
+
+<details>
+<summary><b>📊 Diagrama de Classes Completo</b></summary>
+
+- [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagrama_de_classes.png)
+</details>
+
+<details>
+<summary><b>🐞 Issue/Bug Tracker</b></summary>
+
+- [Visualizar o Issue Tracker atualizado aqui](./Issue-Tracker/issues-print.png)
+</details>
+
+<details>
+<summary><b>🎥 Screencast de Demonstração</b></summary>
+
+▶️ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
+
+🔗 [Clique aqui para assistir](./Screencast/link-screencast.md)
+</details>
+
+---
+
