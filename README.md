@@ -126,8 +126,9 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 - Ambiente versionado no GitHub com commits frequentes (mínimo semanal).
 
-🔗 [Acesse o histórico de commits aqui](<insira o link do seu repo>/commits/main)
+🔗 [Acesse o histórico de commits aqui](https://github.com/guttinue/condominium/commits/main)
 </details>
+
 
 <details>
 <summary><b>📊 Diagrama de Classes Completo</b></summary>
