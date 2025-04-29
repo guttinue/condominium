@@ -175,7 +175,7 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 <details>
 <summary><b>📊 Diagrama de Classes Completo</b></summary>
 
-- [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagrama_de_classes.png)
+- [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagrama_de_classes_new.drawio.png)
 </details>
 
 <details>
