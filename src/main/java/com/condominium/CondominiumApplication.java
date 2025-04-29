@@ -4,6 +4,7 @@ import com.condominium.model.*;
 import com.condominium.service.CondominiumService;
 import com.condominium.service.ManutencaoService;
 import com.condominium.service.ReservaService;
+import com.condominium.service.AssembleiaService;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -16,6 +17,7 @@ public class CondominiumApplication {
     private static CondominiumService condominiumService;
     private static ReservaService reservaService;
     private static ManutencaoService manutencaoService = new ManutencaoService();
+    private static AssembleiaService assembleiaService = new AssembleiaService();
 
     private static AreaComum salaFesta;
     private static AreaComum churrasqueira;
@@ -38,7 +40,7 @@ public class CondominiumApplication {
             try {
                 opcao = Integer.parseInt(scanner.nextLine());
             } catch (NumberFormatException e) {
-                opcao = 0; // se erro, volta ao menu
+                opcao = 0;
             }
 
             limparTela();
@@ -51,21 +53,23 @@ public class CondominiumApplication {
                 case 6 -> exibirDadosCondominio();
                 case 7 -> reportarProblema();
                 case 8 -> gerenciarManutencoes();
-                case 9 -> System.out.println("Saindo...");
+                case 9 -> agendarAssembleia();
+                case 10 -> visualizarAssembleias();
+                case 11 -> atualizarAssembleia();
+                case 12 -> System.out.println("Saindo...");
                 default -> System.out.println("Opção inválida, tente novamente.");
             }
 
-            if (opcao != 9) {
+            if (opcao != 12) {
                 System.out.println("\nPressione ENTER para voltar ao menu...");
                 scanner.nextLine();
                 limparTela();
             }
-        } while (opcao != 9);
+        } while (opcao != 12);
 
         scanner.close();
     }
 
-    // Exibe o menu principal
     private static void exibirMenu() {
         System.out.println("--- MENU ---");
         System.out.println("1 - Adicionar Morador");
@@ -76,29 +80,31 @@ public class CondominiumApplication {
         System.out.println("6 - Exibir dados do Condomínio");
         System.out.println("7 - Reportar Problema de Manutenção");
         System.out.println("8 - Gerenciar Manutenções (Administrador)");
-        System.out.println("9 - Sair");
-        System.out.print("Escolha uma opção: ");
+        System.out.println("9 - Agendar Assembleia (Síndico)");
+        System.out.println("10 - Visualizar Assembleias (Morador)");
+        System.out.println("11 - Atualizar Assembleia (Síndico)");
+        System.out.println("12 - Sair");
+        System.out.println("Escolha uma opção: ");
     }
 
     private static void limparTela() {
         for (int i = 0; i < 30; i++) System.out.println();
     }
 
-    // cadastro
-
+    // Cadastro
     private static void adicionarMorador() {
         System.out.println("--- Cadastro de Morador ---");
-        System.out.print("Nome: ");
+        System.out.println("Nome: ");
         String nome = scanner.nextLine();
-        System.out.print("CPF: ");
+        System.out.println("CPF: ");
         String cpf = scanner.nextLine();
-        System.out.print("Email: ");
+        System.out.println("Email: ");
         String email = scanner.nextLine();
-        System.out.print("Telefone: ");
+        System.out.println("Telefone: ");
         String telefone = scanner.nextLine();
-        System.out.print("Senha: ");
+        System.out.println("Senha: ");
         String senha = scanner.nextLine();
-        System.out.print("Unidade: ");
+        System.out.println("Unidade: ");
         String unidade = scanner.nextLine();
 
         Morador morador = condominiumService.adicionarMorador(nome, cpf, email, telefone, senha, unidade);
@@ -107,17 +113,17 @@ public class CondominiumApplication {
 
     private static void adicionarSindico() {
         System.out.println("--- Cadastro de Síndico ---");
-        System.out.print("Nome: ");
+        System.out.println("Nome: ");
         String nome = scanner.nextLine();
-        System.out.print("CPF: ");
+        System.out.println("CPF: ");
         String cpf = scanner.nextLine();
-        System.out.print("Email: ");
+        System.out.println("Email: ");
         String email = scanner.nextLine();
-        System.out.print("Telefone: ");
+        System.out.println("Telefone: ");
         String telefone = scanner.nextLine();
-        System.out.print("Senha: ");
+        System.out.println("Senha: ");
         String senha = scanner.nextLine();
-        System.out.print("Bloco Responsável: ");
+        System.out.println("Bloco Responsável: ");
         String bloco = scanner.nextLine();
 
         Sindico sindico = condominiumService.adicionarSindico(nome, cpf, email, telefone, senha, bloco);
@@ -126,38 +132,37 @@ public class CondominiumApplication {
 
     private static void adicionarAdministrador() {
         System.out.println("--- Cadastro de Administrador ---");
-        System.out.print("Nome: ");
+        System.out.println("Nome: ");
         String nome = scanner.nextLine();
-        System.out.print("CPF: ");
+        System.out.println("CPF: ");
         String cpf = scanner.nextLine();
-        System.out.print("Email: ");
+        System.out.println("Email: ");
         String email = scanner.nextLine();
-        System.out.print("Telefone: ");
+        System.out.println("Telefone: ");
         String telefone = scanner.nextLine();
-        System.out.print("Senha: ");
+        System.out.println("Senha: ");
         String senha = scanner.nextLine();
-        System.out.print("Setor: ");
+        System.out.println("Setor: ");
         String setor = scanner.nextLine();
 
         Administrador admin = condominiumService.adicionarAdministrador(nome, cpf, email, telefone, senha, setor);
         System.out.println("Administrador cadastrado com sucesso: " + admin);
     }
 
-    // reserva
-
+    // Reserva
     private static void reservarAreaComum() {
         System.out.println("--- Reservar Área Comum ---");
         System.out.println("1 - " + salaFesta);
         System.out.println("2 - " + churrasqueira);
-        System.out.print("Escolha a área (1 ou 2): ");
+        System.out.println("Escolha a área (1 ou 2): ");
         int opcaoArea = Integer.parseInt(scanner.nextLine());
         AreaComum areaSelecionada = (opcaoArea == 1) ? salaFesta : churrasqueira;
 
-        System.out.print("Data da reserva (AAAA-MM-DD): ");
+        System.out.println("Data da reserva (AAAA-MM-DD): ");
         LocalDate data = LocalDate.parse(scanner.nextLine());
-        System.out.print("Hora de Início (HH:MM): ");
+        System.out.println("Hora de Início (HH:MM): ");
         LocalTime horaInicio = LocalTime.parse(scanner.nextLine());
-        System.out.print("Hora de Fim (HH:MM): ");
+        System.out.println("Hora de Fim (HH:MM): ");
         LocalTime horaFim = LocalTime.parse(scanner.nextLine());
 
         Reserva reserva = reservaService.reservarArea(areaSelecionada, data, horaInicio, horaFim);
@@ -178,15 +183,14 @@ public class CondominiumApplication {
         System.out.println(condominiumService.getCondominium());
     }
 
-    // manutenção
-
+    // Manutenção
     private static void reportarProblema() {
         System.out.println("--- Reportar Problema de Manutenção ---");
-        System.out.print("Local: ");
+        System.out.println("Local: ");
         String local = scanner.nextLine();
-        System.out.print("Descrição do problema: ");
+        System.out.println("Descrição do problema: ");
         String descricao = scanner.nextLine();
-        System.out.print("Envolve agentes externos? (s/n): ");
+        System.out.println("Envolve agentes externos? (s/n): ");
         boolean externo = scanner.nextLine().equalsIgnoreCase("s");
 
         ReportManutencao report = manutencaoService.reportarProblema(local, descricao, externo);
@@ -219,12 +223,12 @@ public class CondominiumApplication {
         report.getHistorico().forEach(System.out::println);
 
         System.out.println("\n1 - Comentar\n2 - Alterar Status\n3 - Voltar");
-        System.out.print("Escolha: ");
+        System.out.println("Escolha: ");
         int escolha = Integer.parseInt(scanner.nextLine());
 
         switch (escolha) {
             case 1 -> {
-                System.out.print("Comentário: ");
+                System.out.println("Comentário: ");
                 String comentario = scanner.nextLine();
                 manutencaoService.adicionarComentario(id, comentario);
                 System.out.println("Comentário adicionado!");
@@ -239,5 +243,66 @@ public class CondominiumApplication {
             case 3 -> System.out.println("Voltando...");
             default -> System.out.println("Opção inválida.");
         }
+    }
+
+    // Assembleia
+    private static void agendarAssembleia() {
+        System.out.println("--- Agendar Assembleia ---");
+        System.out.println("Data (AAAA-MM-DD): ");
+        LocalDate data = LocalDate.parse(scanner.nextLine());
+        System.out.println("Horário (HH:MM): ");
+        LocalTime horario = LocalTime.parse(scanner.nextLine());
+        System.out.println("Local: ");
+        String local = scanner.nextLine();
+        System.out.println("Pauta: ");
+        String pauta = scanner.nextLine();
+        System.out.println("Participantes esperados (numero de participantes): ");
+        int participantes = Integer.parseInt(scanner.nextLine());
+
+        if (local.isBlank() || pauta.isBlank()) {
+            System.out.println("Local e pauta são obrigatórios!");
+            return;
+        }
+
+        Assembleia a = assembleiaService.agendarAssembleia(data, horario, local, pauta, participantes);
+        System.out.println("Assembleia agendada: " + a);
+    }
+
+    private static void visualizarAssembleias() {
+        System.out.println("--- Assembleias Agendadas ---");
+        List<Assembleia> lista = assembleiaService.listarAssembleias();
+        if (lista.isEmpty()) {
+            System.out.println("Nenhuma assembleia agendada.");
+        } else {
+            lista.forEach(System.out::println);
+        }
+    }
+
+    private static void atualizarAssembleia() {
+        System.out.println("--- Atualizar Assembleia ---");
+        visualizarAssembleias();
+        System.out.println("ID da assembleia a atualizar: ");
+        Long id = Long.parseLong(scanner.nextLine());
+
+        Optional<Assembleia> opt = assembleiaService.buscarPorId(id);
+        if (opt.isEmpty()) {
+            System.out.println("Assembleia não encontrada.");
+            return;
+        }
+
+        System.out.println("Nova Data (AAAA-MM-DD): ");
+        LocalDate novaData = LocalDate.parse(scanner.nextLine());
+        System.out.println("Novo Horário (HH:MM): ");
+        LocalTime novoHorario = LocalTime.parse(scanner.nextLine());
+        System.out.println("Nova Pauta: ");
+        String novaPauta = scanner.nextLine();
+
+        if (novaPauta.isBlank()) {
+            System.out.println("Pauta é obrigatória!");
+            return;
+        }
+
+        boolean sucesso = assembleiaService.atualizarAssembleia(id, novaData, novoHorario, novaPauta);
+        System.out.println(sucesso ? "Assembleia atualizada!" : "Falha na atualização.");
     }
 }
