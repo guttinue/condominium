@@ -195,7 +195,7 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 </details>
 
 <details>
-<summary><b>📝 Tstes Automatizados</b></summary>
+<summary><b>📝 Testes Automatizados</b></summary>
 
 📝 Assista ao vídeo de testes automzatizados no nosso sistema utilizando o Maven
 
