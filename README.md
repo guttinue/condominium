@@ -72,9 +72,7 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 | 7  | Síndico                   | Agendamento e registro de assembleias        |
 | 8  | Morador                   | Consulta histórico financeiro                |
 
-🔗 [Clique aqui para acessar as histórias e seus critérios de aceitação](https://docs.google.com/document/d/1uCOb1VYue-xjoiS_MogRAcUqpI_XkEzs88wFSWjz7js/edit?usp=sharing)
-
-🔗 [Clique aqui para acessar as histórias que serão priorizadas](https://docs.google.com/document/d/13j9C_eRWaAxZ0_8xuBeFaU7xC5Una4DKaNS6POx271E/edit?usp=sharing)
+🔗 [Clique aqui para acessar as histórias e seus critérios de aceitação](https://docs.google.com/document/d/1cEao7RFi_IAkyKRBPETrI6R5NwgSLFkRdxgUmrukpas/edit?usp=sharing)
 
 </details>
 
