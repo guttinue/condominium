@@ -3,11 +3,12 @@ package com.condominium.service;
 import com.condominium.model.Administrador;
 import com.condominium.model.Condominium;
 import com.condominium.model.Morador;
+import com.condominium.model.Role;
 import com.condominium.model.Sindico;
 
 public class CondominiumService {
-    private Condominium condominium;
-    private Long usuarioCounter = 1L; // Para atribuir IDs aos usuários
+    private final Condominium condominium;
+    private Long usuarioCounter = 1L; // sequência de IDs
 
     public CondominiumService(String nomeCondominium) {
         this.condominium = new Condominium(usuarioCounter, nomeCondominium);
@@ -17,21 +18,45 @@ public class CondominiumService {
         return condominium;
     }
 
-    public Morador adicionarMorador(String nome, String cpf, String email, String telefone, String senha, String unidade) {
-        Morador morador = new Morador(usuarioCounter++, nome, cpf, email, telefone, senha, unidade);
-        condominium.addMorador(morador);
-        return morador;
+    public Morador adicionarMorador(
+            String nome,
+            String cpf,
+            String email,
+            String telefone,
+            String senha,
+            String unidade
+    ) {
+        Morador m = new Morador(usuarioCounter++, nome, cpf, email, telefone, senha, unidade);
+        m.addRole(Role.MORADOR);
+        condominium.addMorador(m);
+        return m;
     }
 
-    public Sindico adicionarSindico(String nome, String cpf, String email, String telefone, String senha, String blocoResponsavel) {
-        Sindico sindico = new Sindico(usuarioCounter++, nome, cpf, email, telefone, senha, blocoResponsavel);
-        condominium.addSindico(sindico);
-        return sindico;
+    public Sindico adicionarSindico(
+            String nome,
+            String cpf,
+            String email,
+            String telefone,
+            String senha,
+            String blocoResponsavel
+    ) {
+        Sindico s = new Sindico(usuarioCounter++, nome, cpf, email, telefone, senha, blocoResponsavel);
+        s.addRole(Role.SINDICO);
+        condominium.addSindico(s);
+        return s;
     }
 
-    public Administrador adicionarAdministrador(String nome, String cpf, String email, String telefone, String senha, String setor) {
-        Administrador admin = new Administrador(usuarioCounter++, nome, cpf, email, telefone, senha, setor);
-        condominium.addAdministrador(admin);
-        return admin;
+    public Administrador adicionarAdministrador(
+            String nome,
+            String cpf,
+            String email,
+            String telefone,
+            String senha,
+            String setor
+    ) {
+        Administrador a = new Administrador(usuarioCounter++, nome, cpf, email, telefone, senha, setor);
+        a.addRole(Role.FUNCIONARIO);
+        condominium.addAdministrador(a);
+        return a;
     }
 }

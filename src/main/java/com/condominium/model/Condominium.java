@@ -6,6 +6,7 @@ import java.util.List;
 public class Condominium {
     private Long id;
     private String nome;
+    private List<AreaComum> areasComuns = new ArrayList<>();
 
     private List<Morador> moradores = new ArrayList<>();
     private List<Sindico> sindicos = new ArrayList<>();
@@ -58,6 +59,10 @@ public class Condominium {
     public void addAdministrador(Administrador a) {
         administradores.add(a);
     }
+
+    public void addAreaComum(AreaComum a) { areasComuns.add(a); }
+
+    public List<AreaComum> getAreasComuns() { return List.copyOf(areasComuns); }
 
     @Override
     public String toString() {

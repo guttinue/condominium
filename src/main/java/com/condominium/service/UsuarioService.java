@@ -1,37 +1,23 @@
 package com.condominium.service;
 
-import com.condominium.model.Administrador;
-import com.condominium.model.Morador;
-import com.condominium.model.Sindico;
 import com.condominium.model.Usuario;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UsuarioService {
-    private List<Usuario> usuarios = new ArrayList<>();
-    private Long usuarioCounter = 1L;
+    private final List<Usuario> usuarios = new ArrayList<>();
 
-    public Morador adicionarMorador(String nome, String cpf, String email, String telefone, String senha, String unidade) {
-        Morador morador = new Morador(usuarioCounter++, nome, cpf, email, telefone, senha, unidade);
-        usuarios.add(morador);
-        return morador;
+    public void registerAll(List<Usuario> mor, List<Usuario> sin, List<Usuario> adm) {
+        usuarios.clear();
+        usuarios.addAll(mor);
+        usuarios.addAll(sin);
+        usuarios.addAll(adm);
     }
 
-    public Sindico adicionarSindico(String nome, String cpf, String email, String telefone, String senha, String blocoResponsavel) {
-        Sindico sindico = new Sindico(usuarioCounter++, nome, cpf, email, telefone, senha, blocoResponsavel);
-        usuarios.add(sindico);
-        return sindico;
-    }
-
-    public Administrador adicionarAdministrador(String nome, String cpf, String email, String telefone, String senha, String setor) {
-        Administrador admin = new Administrador(usuarioCounter++, nome, cpf, email, telefone, senha, setor);
-        usuarios.add(admin);
-        return admin;
-    }
-
-    // Método para listar todos os usuários cadastrados
-    public List<Usuario> listarUsuarios() {
-        return usuarios;
+    public Optional<Usuario> login(String email, String senha) {
+        return usuarios.stream()
+                .filter(u -> u.getEmail().equals(email) && u.getSenha().equals(senha))
+                .findFirst();
     }
 }

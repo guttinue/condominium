@@ -1,5 +1,8 @@
 package com.condominium.model;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class Usuario {
     private Long id;
     private String nome;
@@ -7,8 +10,10 @@ public abstract class Usuario {
     private String email;
     private String telefone;
     private String senha;
+    private Set<Role> roles = new HashSet<>();
 
-    public Usuario() {}
+    public Usuario() {
+    }
 
     public Usuario(Long id, String nome, String cpf, String email, String telefone, String senha) {
         this.id = id;
@@ -68,6 +73,13 @@ public abstract class Usuario {
     }
 
     public abstract String getTipoUsuario();
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+    public void addRole(Role r) {
+        roles.add(r);
+    }
 
     @Override
     public String toString() {

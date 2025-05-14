@@ -12,7 +12,6 @@ public class ReservaService {
     private List<Reserva> reservas = new ArrayList<>();
     private Long reservaCounter = 1L;
 
-    // Método para reservar uma área, verificando se o horário está disponível
     public Reserva reservarArea(AreaComum area, LocalDate data, LocalTime horaInicio, LocalTime horaFim) {
         if (isHorarioDisponivel(area, data, horaInicio, horaFim)) {
             Reserva reserva = new Reserva(reservaCounter++, area, data, horaInicio, horaFim, "Pendente");
