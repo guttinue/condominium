@@ -24,11 +24,11 @@ public class Veiculo {
     @Column(name = "tipo_veiculo", nullable = false, length = 20) // Ex: CARRO, MOTO, BICICLETA
     private String tipoVeiculo;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "morador_id", nullable = false)
     private Morador morador; // Morador proprietário do veículo
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "condominio_id", nullable = false)
     private Condominium condominio; // Condomínio ao qual o veículo está associado
 
