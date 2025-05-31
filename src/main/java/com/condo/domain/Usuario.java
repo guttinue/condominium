@@ -33,7 +33,7 @@ public abstract class Usuario {
     @Column(name = "role", nullable = false)
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "condominio_id", nullable = true)
     private Condominium condominio;
 

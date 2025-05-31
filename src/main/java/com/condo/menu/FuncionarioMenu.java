@@ -1,3 +1,4 @@
+// src/main/java/com/condo/menu/FuncionarioMenu.java
 package com.condo.menu;
 
 import com.condo.domain.Administrador;
@@ -12,7 +13,6 @@ import com.condo.service.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.origin.SystemEnvironmentOrigin; // Removido
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -53,7 +53,7 @@ public class FuncionarioMenu {
                     + funcionarioLogado.getSetor() + ") ---");
             System.out.println("1. Gerenciar Cadastro de Moradores");
             System.out.println("2. Gerenciar Taxas Condominiais");
-            System.out.println("3. Emitir Boletos (Não implementado)");
+            System.out.println("3. Emitir Boleto para Taxa"); // Alterado
             System.out.println("4. Consultar Status de Pagamento (Não implementado)");
             System.out.println("5. Gerenciar Entradas/Saídas de Visitantes");
             System.out.println("6. Consultar Histórico de Visitantes");
@@ -72,7 +72,7 @@ public class FuncionarioMenu {
                         gerenciarTaxasCondominiais(scanner, funcionarioLogado);
                         break;
                     case 3:
-                        System.out.println("Funcionalidade 'Emitir Boletos' ainda não implementada.");
+                        emitirBoletoParaTaxa(scanner); // Novo método chamado
                         break;
                     case 4:
                         System.out.println("Funcionalidade 'Consultar Status de Pagamento' ainda não implementada.");
@@ -116,7 +116,7 @@ public class FuncionarioMenu {
 
             switch (opcaoCadastro) {
                 case 1:
-                    cadastrarNovoMorador(scanner /*, funcionarioLogado */);
+                    cadastrarNovoMorador(scanner);
                     break;
                 case 2:
                     listarTodosMoradores();
@@ -139,7 +139,7 @@ public class FuncionarioMenu {
         }
     }
 
-    private void cadastrarNovoMorador(Scanner scanner /*, Administrador funcionarioLogado // ou Condominium condominio */) {
+    private void cadastrarNovoMorador(Scanner scanner) {
         System.out.println("\n--- Cadastrar Novo Morador ---");
         System.out.print("Nome completo: ");
         String nome = scanner.nextLine();
@@ -154,7 +154,7 @@ public class FuncionarioMenu {
         System.out.print("Senha para o novo morador: ");
         String senha = scanner.nextLine();
 
-        if (nome.trim().isEmpty() || email.trim().isEmpty() || /* telefone pode ser opcional */
+        if (nome.trim().isEmpty() || email.trim().isEmpty() ||
                 cpf.trim().isEmpty() || unidade.trim().isEmpty() || senha.trim().isEmpty()) {
             System.out.println("Nome, email, CPF, unidade e senha são obrigatórios.");
             return;
@@ -173,6 +173,10 @@ public class FuncionarioMenu {
     }
 
     private void imprimirDetalhesMorador(Morador morador) {
+        if (morador == null) {
+            System.out.println("Dados do morador não disponíveis.");
+            return;
+        }
         System.out.println("ID: " + morador.getId() + " | Nome: " + morador.getNome() +
                 " | Email: " + morador.getEmail() +
                 " | Telefone: " + (morador.getTelefone() != null && !morador.getTelefone().isBlank() ? morador.getTelefone() : "N/A") +
@@ -205,7 +209,11 @@ public class FuncionarioMenu {
             }
         } catch (NumberFormatException e) {
             // Silenciosamente ignora se não for um número, para tentar outros identificadores
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage()); // Se buscarMoradorPorId lançar erro de ID inválido
+            return;
         }
+
 
         Optional<Morador> moradorOpt = usuarioService.buscarMoradorPorIdentificador(identificador);
         if (moradorOpt.isPresent()) {
@@ -251,7 +259,7 @@ public class FuncionarioMenu {
 
         try {
             Morador moradorAtualizado = usuarioService.atualizarMorador(moradorId,
-                    novoNome.isBlank() ? null : novoNome,
+                    novoNome.isBlank() ? null : novoNome, // Passa null se em branco, serviço decidirá se mantém ou não
                     novoEmail.isBlank() ? null : novoEmail,
                     novoTelefone.isBlank() ? null : novoTelefone,
                     novaUnidade.isBlank() ? null : novaUnidade);
@@ -292,7 +300,7 @@ public class FuncionarioMenu {
             try {
                 usuarioService.excluirMorador(moradorId);
                 System.out.println("Morador excluído com sucesso.");
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("Erro ao excluir morador: " + e.getMessage());
             } catch (Exception e) {
                 log.error("Erro inesperado ao excluir morador ID {}: {}", moradorId, e.getMessage(), e);
@@ -309,8 +317,8 @@ public class FuncionarioMenu {
             System.out.println("\n--- Gerenciar Taxas Condominiais ---");
             System.out.println("1. Gerar Nova Taxa para Morador");
             System.out.println("2. Registrar Pagamento Efetuado de Taxa");
-            System.out.println("3. Listar Taxas Pendentes");
-            System.out.println("4. Listar Todas as Taxas");
+            System.out.println("3. Listar Taxas Pendentes (Geral)"); // Alterado
+            System.out.println("4. Listar Todas as Taxas (Geral)");   // Alterado
             System.out.println("0. Voltar ao Menu do Funcionário");
             System.out.print("Escolha uma opção: ");
             int escolha = lerInt(scanner);
@@ -323,10 +331,10 @@ public class FuncionarioMenu {
                     registrarPagamentoEfetuado(scanner);
                     break;
                 case 3:
-                    listarTaxasPendentes();
+                    listarTaxasPendentesGeral(); // Alterado para chamar o método correto
                     break;
                 case 4:
-                    listarTodasAsTaxas();
+                    listarTodasAsTaxasGeral(); // Alterado para chamar o método correto
                     break;
                 case 0:
                     subMenuContinuar = false;
@@ -359,9 +367,9 @@ public class FuncionarioMenu {
         try {
             String valorStr = scanner.nextLine();
             if (valorStr.isBlank()) throw new NumberFormatException("Valor não pode ser em branco.");
-            valor = new BigDecimal(valorStr);
+            valor = new BigDecimal(valorStr.replace(",", ".")); // Aceita vírgula como separador decimal
         } catch (NumberFormatException e) {
-            System.out.println("Valor inválido: " + e.getMessage());
+            System.out.println("Valor inválido. Use números e opcionalmente '.' ou ',' como separador decimal.");
             return;
         }
 
@@ -384,9 +392,9 @@ public class FuncionarioMenu {
         }
 
         try {
-            if (funcionarioLogado.getCondominio() == null) {
-                System.out.println("ERRO: Funcionário não está associado a um condomínio. Não é possível gerar taxa.");
-                log.warn("Tentativa de gerar taxa por funcionário {} sem condomínio associado.", funcionarioLogado.getEmail());
+            if (funcionarioLogado.getCondominio() == null || funcionarioLogado.getCondominio().getId() == null) {
+                System.out.println("ERRO: Funcionário não está associado a um condomínio válido. Não é possível gerar taxa.");
+                log.warn("Tentativa de gerar taxa por funcionário {} sem condomínio associado ou ID do condomínio nulo.", funcionarioLogado.getEmail());
                 return;
             }
             Long condominioId = funcionarioLogado.getCondominio().getId();
@@ -404,7 +412,7 @@ public class FuncionarioMenu {
 
     private void registrarPagamentoEfetuado(Scanner scanner) {
         System.out.println("\n--- Registrar Pagamento Efetuado ---");
-        listarTaxasPendentes();
+        listarTaxasPendentesGeral(); // Lista todas as pendentes para facilitar a escolha
 
         System.out.print("Digite o ID da Taxa que foi paga (ou 0 para cancelar): ");
         Long taxaId = lerLong(scanner);
@@ -413,12 +421,16 @@ public class FuncionarioMenu {
             return;
         }
 
-        System.out.print("Data do pagamento (dd/MM/yyyy): ");
+        System.out.print("Data do pagamento (dd/MM/yyyy, deixe em branco para usar hoje): ");
         LocalDate dataPagamento;
         try {
             String dataPagStr = scanner.nextLine();
-            if (dataPagStr.isBlank()) throw new DateTimeParseException("Data não pode ser em branco.", dataPagStr, 0);
-            dataPagamento = LocalDate.parse(dataPagStr, DATE_FORMATTER_INPUT);
+            if (dataPagStr.isBlank()) {
+                dataPagamento = LocalDate.now(); // Usa data atual se em branco
+                System.out.println("Usando data atual para pagamento: " + dataPagamento.format(DATE_FORMATTER_DISPLAY));
+            } else {
+                dataPagamento = LocalDate.parse(dataPagStr, DATE_FORMATTER_INPUT);
+            }
         } catch (DateTimeParseException e) {
             System.out.println("Formato de data inválido. Use dd/MM/yyyy.");
             return;
@@ -438,11 +450,14 @@ public class FuncionarioMenu {
 
     private void imprimirDetalhesPagamento(Pagamento p) {
         Morador morador = p.getMorador();
-        String nomeMorador = (morador != null) ? morador.getNome() + " (Unid: " + morador.getUnidade() + ")" : "Morador Desconhecido";
+        String nomeMorador = (morador != null) ? morador.getNome() : "N/A";
+        String unidadeMorador = (morador != null && morador.getUnidade() != null) ? morador.getUnidade() : "N/A";
+
         System.out.println(
-                String.format("ID: %d | Morador: %s | Descrição: %s | Valor: R$%.2f | Venc: %s | Status: %s %s",
+                String.format("ID Pg: %-4d | Morador: %-25.25s (Un: %-8.8s) | Desc: %-30.30s | Valor: R$ %-8.2f | Venc: %-10s | Status: %-15s %s",
                         p.getId(),
                         nomeMorador,
+                        unidadeMorador,
                         p.getDescricao(),
                         p.getValor(),
                         p.getDataVencimento().format(DATE_FORMATTER_DISPLAY),
@@ -452,19 +467,21 @@ public class FuncionarioMenu {
         );
     }
 
-    private void listarTaxasPendentes() {
-        System.out.println("\n--- Taxas Condominiais Pendentes ---");
-        List<Pagamento> pendentes = pagamentoService.listarPagamentosPendentes();
+    // Método chamado pelo menu quando o funcionário quer ver taxas pendentes gerais
+    private void listarTaxasPendentesGeral() {
+        System.out.println("\n--- Taxas Condominiais Pendentes (Geral) ---");
+        // Chama o método correto no PagamentoService que lista TODAS as pendentes
+        List<Pagamento> pendentes = pagamentoService.listarTodosPagamentosPorStatus("PENDENTE");
         if (pendentes.isEmpty()) {
-            System.out.println("Nenhuma taxa pendente encontrada.");
+            System.out.println("Nenhuma taxa pendente encontrada no condomínio.");
         } else {
             pendentes.forEach(this::imprimirDetalhesPagamento);
         }
     }
 
-    private void listarTodasAsTaxas() {
-        System.out.println("\n--- Todas as Taxas Condominiais ---");
-        List<Pagamento> todas = pagamentoService.listarTodosPagamentos();
+    private void listarTodasAsTaxasGeral() {
+        System.out.println("\n--- Todas as Taxas Condominiais (Geral) ---");
+        List<Pagamento> todas = pagamentoService.listarTodosOsPagamentos();
         if (todas.isEmpty()) {
             System.out.println("Nenhuma taxa encontrada no sistema.");
         } else {
@@ -472,7 +489,45 @@ public class FuncionarioMenu {
         }
     }
 
+    // NOVO MÉTODO PARA EMITIR BOLETO
+    private void emitirBoletoParaTaxa(Scanner scanner) {
+        System.out.println("\n--- Emitir Boleto para Taxa ---");
+
+        System.out.println("Taxas com pagamento pendente ou em atraso:");
+        List<Pagamento> pagamentosParaBoleto = pagamentoService.listarTodosPagamentosPorStatus("PENDENTE");
+        pagamentosParaBoleto.addAll(pagamentoService.listarTodosPagamentosPorStatus("ATRASADO")); // Adiciona os atrasados também
+
+        if (pagamentosParaBoleto.isEmpty()) {
+            System.out.println("Nenhuma taxa pendente ou em atraso encontrada para emissão de boleto.");
+            return;
+        }
+        pagamentosParaBoleto.forEach(this::imprimirDetalhesPagamento);
+
+        System.out.print("\nDigite o ID da Taxa para emitir o boleto (ou 0 para cancelar): ");
+        Long pagamentoId = lerLong(scanner);
+        if (pagamentoId == null || pagamentoId == 0) {
+            if (pagamentoId != null && pagamentoId == 0) System.out.println("Emissão de boleto cancelada.");
+            return;
+        }
+
+        try {
+            String dadosBoleto = pagamentoService.gerarDadosBoleto(pagamentoId);
+            System.out.println("\n--- BOLETO GERADO (SIMULAÇÃO) ---");
+            System.out.println(dadosBoleto);
+            System.out.println("--- FIM DO BOLETO ---");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Erro ao emitir boleto: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erro inesperado ao emitir boleto para pagamento ID {}: {}", pagamentoId, e.getMessage(), e);
+            System.err.println("Ocorreu um erro inesperado ao emitir o boleto.");
+        }
+    }
+
+
     private void imprimirDetalhesCompletosVisitante(Visitante v) {
+        Morador moradorResponsavel = v.getMoradorResponsavel();
+        String nomeMorador = (moradorResponsavel != null) ? moradorResponsavel.getNome() : "N/A";
+
         System.out.println(String.format(
                 "ID: %d | Nome: %s | Doc: %s | Placa: %s | Previsto: %s | Unid: %s | Status: %s | Morador Resp.: %s",
                 v.getId(),
@@ -482,7 +537,7 @@ public class FuncionarioMenu {
                 v.getDataHoraVisitaPrevista().format(DATETIME_FORMATTER_DISPLAY),
                 v.getUnidadeDestino(),
                 v.getStatusVisita(),
-                v.getMoradorResponsavel().getNome()
+                nomeMorador
         ));
         if (v.getDataHoraEntradaEfetiva() != null) {
             System.out.println("  Entrada Efetiva: " + v.getDataHoraEntradaEfetiva().format(DATETIME_FORMATTER_DISPLAY));
@@ -504,8 +559,8 @@ public class FuncionarioMenu {
             int escolha = lerInt(scanner);
 
             try {
-                if (funcionarioLogado.getCondominio() == null) {
-                    System.out.println("ERRO: Funcionário não está associado a um condomínio.");
+                if (funcionarioLogado.getCondominio() == null || funcionarioLogado.getCondominio().getId() == null) {
+                    System.out.println("ERRO: Funcionário não está associado a um condomínio válido.");
                     return;
                 }
                 Long condominioId = funcionarioLogado.getCondominio().getId();
@@ -547,7 +602,7 @@ public class FuncionarioMenu {
 
     private void registrarEntradaVisitantePeloFuncionario(Scanner scanner, Long condominioId) {
         System.out.println("\n--- Registrar Entrada de Visitante ---");
-        listarVisitantesEsperadosHojePeloFuncionario(condominioId); // Mostra visitantes para facilitar ID
+        listarVisitantesEsperadosHojePeloFuncionario(condominioId);
         System.out.print("Digite o ID do Visitante que está entrando (ou 0 para cancelar): ");
         Long visitanteId = lerLong(scanner);
         if (visitanteId == null || visitanteId == 0) return;
@@ -573,9 +628,8 @@ public class FuncionarioMenu {
             visitantesPresentes.forEach(this::imprimirDetalhesCompletosVisitante);
         }
 
-
         System.out.print("\nDigite o ID do Visitante que está saindo (ou 0 para cancelar): ");
-        Long visitanteId = lerLong(scanner); // Seu método lerLong
+        Long visitanteId = lerLong(scanner);
         if (visitanteId == null || visitanteId == 0) {
             if (visitanteId != null && visitanteId == 0) System.out.println("Operação cancelada.");
             return;
@@ -592,7 +646,6 @@ public class FuncionarioMenu {
             System.out.println("Ocorreu um erro inesperado.");
         }
     }
-
 
     private void consultarHistoricoVisitantesPeloFuncionario(Scanner scanner, Administrador funcionarioLogado) {
         System.out.println("\n--- Histórico de Visitantes ---");
@@ -613,8 +666,8 @@ public class FuncionarioMenu {
         }
 
         try {
-            if (funcionarioLogado.getCondominio() == null) {
-                System.out.println("ERRO: Funcionário não está associado a um condomínio.");
+            if (funcionarioLogado.getCondominio() == null || funcionarioLogado.getCondominio().getId() == null) {
+                System.out.println("ERRO: Funcionário não está associado a um condomínio válido.");
                 return;
             }
             Long condominioId = funcionarioLogado.getCondominio().getId();
@@ -642,18 +695,22 @@ public class FuncionarioMenu {
     }
 
     private void imprimirDetalhesVeiculoComUnidade(Veiculo v) {
+        Morador morador = v.getMorador();
+        String unidadeMorador = (morador != null && morador.getUnidade() != null) ? morador.getUnidade() : "N/A";
+        String nomeMorador = (morador != null) ? morador.getNome() : "N/A";
+
         System.out.println(String.format("Placa: %s | Modelo: %s | Cor: %s | Tipo: %s | Unidade Morador: %s (Nome: %s)",
                 v.getPlaca(), v.getModelo(), v.getCor(), v.getTipoVeiculo(),
-                v.getMorador() != null ? v.getMorador().getUnidade() : "N/A",
-                v.getMorador() != null ? v.getMorador().getNome() : "N/A"
+                unidadeMorador,
+                nomeMorador
         ));
     }
 
     private void listarVeiculosDoCondominioPeloFuncionario(Administrador funcionarioLogado) {
         System.out.println("\n--- Veículos Cadastrados no Condomínio ---");
         try {
-            if (funcionarioLogado.getCondominio() == null) {
-                System.out.println("ERRO: Funcionário não está associado a um condomínio.");
+            if (funcionarioLogado.getCondominio() == null || funcionarioLogado.getCondominio().getId() == null) {
+                System.out.println("ERRO: Funcionário não está associado a um condomínio válido.");
                 return;
             }
             Long condominioId = funcionarioLogado.getCondominio().getId();
@@ -676,12 +733,12 @@ public class FuncionarioMenu {
             String line = scanner.nextLine();
             if (line.isBlank()) {
                 System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
-                return -99; // Um valor que pode ser tratado como erro/inválido
+                return -99;
             }
             return Integer.parseInt(line);
         } catch (NumberFormatException e) {
             System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
-            return -99; // Um valor que pode ser tratado como erro/inválido
+            return -99;
         }
     }
 
@@ -690,12 +747,12 @@ public class FuncionarioMenu {
             String line = scanner.nextLine();
             if (line.isBlank()) {
                 System.out.println("Entrada inválida. Por favor, insira um número.");
-                return null; // Indica que a leitura falhou ou foi cancelada
+                return null;
             }
             return Long.parseLong(line);
         } catch (NumberFormatException e) {
             System.out.println("Entrada inválida. Por favor, insira um número (long).");
-            return null; // Indica que a leitura falhou
+            return null;
         }
     }
 }

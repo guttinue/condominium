@@ -8,8 +8,7 @@ import com.condo.domain.Administrador;
 import com.condo.menu.FuncionarioMenu;
 import com.condo.menu.MoradorMenu;
 import com.condo.menu.SindicoMenu;
-import com.condo.service.LoginService; // Apenas um import é necessário
-// Outros services serão injetados conforme necessário
+import com.condo.service.LoginService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -18,7 +17,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataIntegrityViolationException;
 
-// import java.util.InputMismatchException; // Não usado diretamente aqui, mas pode estar em menus
 import java.util.Optional;
 import java.util.Scanner;
 import java.util.Set;

@@ -10,8 +10,6 @@ import java.util.List;
 @Repository
 public interface PagamentoRepository extends JpaRepository<Pagamento, Long> {
 
-    List<Pagamento> findByMorador(Morador morador);
-    List<Pagamento> findByMoradorAndStatus(Morador morador, String status);
-    List<Pagamento> findByStatus(String status);
-
+    List<Pagamento> findByMoradorAndStatusIgnoreCaseOrderByDataVencimentoAsc(Morador morador, String status);
+    List<Pagamento> findByStatusIgnoreCaseOrderByDataVencimentoAsc(String status);
 }

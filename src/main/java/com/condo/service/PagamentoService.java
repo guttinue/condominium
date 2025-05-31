@@ -1,4 +1,5 @@
-package com.condo.service; // Ou seu pacote de serviço
+// src/main/java/com/condo/service/PagamentoService.java
+package com.condo.service;
 
 import com.condo.domain.Condominium;
 import com.condo.domain.Morador;
@@ -14,8 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class PagamentoService {
@@ -23,8 +27,12 @@ public class PagamentoService {
     private static final Logger log = LoggerFactory.getLogger(PagamentoService.class);
 
     private final PagamentoRepository pagamentoRepository;
-    private final MoradorRepository moradorRepository; // Para buscar o morador ao gerar taxa
-    private final CondominiumRepository condominiumRepository; // Para associar ao condomínio
+    private final MoradorRepository moradorRepository;
+    private final CondominiumRepository condominiumRepository;
+
+    private static final String STATUS_PENDENTE = "PENDENTE";
+    private static final DateTimeFormatter DATE_FORMATTER_BOLETO = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
 
     @Autowired
     public PagamentoService(PagamentoRepository pagamentoRepository,
@@ -35,93 +43,153 @@ public class PagamentoService {
         this.condominiumRepository = condominiumRepository;
     }
 
-    /**
-     * Gera uma nova taxa condominial (Pagamento com status PENDENTE).
-     */
+    @Transactional(readOnly = true)
+    public List<Pagamento> listarTaxasPendentesPorMorador(Morador morador) {
+        if (morador == null) {
+            log.warn("Tentativa de listar taxas pendentes para morador nulo.");
+            throw new IllegalArgumentException("Morador não pode ser nulo para listar taxas pendentes.");
+        }
+        log.info("Buscando taxas pendentes para o morador ID: {}", morador.getId());
+        List<Pagamento> taxasPendentes = pagamentoRepository.findByMoradorAndStatusIgnoreCaseOrderByDataVencimentoAsc(morador, STATUS_PENDENTE);
+        log.info("Encontradas {} taxas pendentes para o morador ID: {}", taxasPendentes.size(), morador.getId());
+        return taxasPendentes;
+    }
+
     @Transactional
     public Pagamento gerarNovaTaxaCondominial(Long moradorId, BigDecimal valor, LocalDate dataVencimento, String descricao, Long condominioId) {
-        Morador morador = moradorRepository.findById(moradorId)
-                .orElseThrow(() -> new IllegalArgumentException("Morador com ID " + moradorId + " não encontrado."));
+        log.info("Tentativa de gerar nova taxa: Morador ID={}, Valor={}, Vencimento={}, Descricao='{}', Condominio ID={}",
+                moradorId, valor, dataVencimento, descricao, condominioId);
 
-        Condominium condominio = condominiumRepository.findById(condominioId)
-                .orElseThrow(() -> new IllegalArgumentException("Condomínio com ID " + condominioId + " não encontrado."));
-
-        if (valor == null || valor.compareTo(BigDecimal.ZERO) <= 0) {
+        if (moradorId == null || condominioId == null || valor == null || dataVencimento == null || descricao == null || descricao.trim().isEmpty()) {
+            throw new IllegalArgumentException("Todos os parâmetros (moradorId, condominioId, valor, dataVencimento, descricao) são obrigatórios para gerar uma nova taxa.");
+        }
+        if (valor.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("O valor da taxa deve ser positivo.");
         }
-        if (dataVencimento == null || dataVencimento.isBefore(LocalDate.now().minusDays(1))) { // Permite gerar para hoje
-            throw new IllegalArgumentException("Data de vencimento inválida ou no passado.");
-        }
-        if (descricao == null || descricao.trim().isEmpty()) {
-            throw new IllegalArgumentException("A descrição da taxa é obrigatória.");
-        }
 
-        Pagamento novaTaxa = new Pagamento(morador, condominio, valor, dataVencimento, descricao);
-        log.info("Gerando nova taxa: Morador ID {}, Valor R${}, Vencimento {}, Descrição '{}'",
-                moradorId, valor, dataVencimento, descricao);
-        return pagamentoRepository.save(novaTaxa);
+        Morador morador = moradorRepository.findById(moradorId)
+                .orElseThrow(() -> {
+                    log.error("Morador não encontrado com ID: {}", moradorId);
+                    return new IllegalArgumentException("Morador não encontrado com ID: " + moradorId);
+                });
+
+        Condominium condominio = condominiumRepository.findById(condominioId)
+                .orElseThrow(() -> {
+                    log.error("Condomínio não encontrado com ID: {}", condominioId);
+                    return new IllegalArgumentException("Condomínio não encontrado com ID: " + condominioId);
+                });
+
+        Pagamento novoPagamento = new Pagamento(morador, condominio, valor, dataVencimento, descricao.trim());
+
+        try {
+            Pagamento pagamentoSalvo = pagamentoRepository.save(novoPagamento);
+            log.info("Nova taxa gerada e salva com sucesso. Pagamento ID: {}, Morador: {}, Valor: {}",
+                    pagamentoSalvo.getId(), morador.getNome(), valor);
+            return pagamentoSalvo;
+        } catch (Exception e) {
+            log.error("Erro ao salvar a nova taxa para o morador ID {}: {}", moradorId, e.getMessage(), e);
+            throw new RuntimeException("Não foi possível salvar a nova taxa. Verifique os logs.", e);
+        }
     }
 
-    /**
-     * Registra o pagamento de uma taxa existente.
-     * Atualiza o status da taxa para "PAGO" e define a data de pagamento.
-     */
+    @Transactional(readOnly = true)
+    public List<Pagamento> listarTodosPagamentosPorStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            log.warn("Tentativa de listar pagamentos com status vazio. Retornando lista vazia.");
+            return Collections.emptyList();
+        }
+        log.info("Buscando todos os pagamentos com status: {}", status.toUpperCase());
+        List<Pagamento> pagamentos = pagamentoRepository.findByStatusIgnoreCaseOrderByDataVencimentoAsc(status.toUpperCase());
+        log.info("Encontrados {} pagamentos com status: {}", pagamentos.size(), status.toUpperCase());
+        return pagamentos;
+    }
+
+    // MÉTODO QUE ESTÁ FALTANDO OU COM NOME DIFERENTE NO SEU CÓDIGO:
+    @Transactional(readOnly = true)
+    public List<Pagamento> listarTodosOsPagamentos() {
+        log.info("Buscando todos os pagamentos do sistema.");
+        List<Pagamento> todosPagamentos = pagamentoRepository.findAll(); //findAll() é um método padrão do JpaRepository
+        log.info("Encontrados {} pagamentos no total.", todosPagamentos.size());
+        return todosPagamentos;
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Pagamento> buscarPagamentoPorId(Long pagamentoId) {
+        return pagamentoRepository.findById(pagamentoId);
+    }
+
     @Transactional
-    public Pagamento registrarPagamentoEfetuado(Long taxaId, LocalDate dataPagamento) {
-        Pagamento taxa = pagamentoRepository.findById(taxaId)
-                .orElseThrow(() -> new IllegalArgumentException("Taxa com ID " + taxaId + " não encontrada."));
+    public Pagamento registrarPagamentoEfetuado(Long pagamentoId, LocalDate dataPagamentoReal) {
+        Pagamento pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pagamento com ID " + pagamentoId + " não encontrado."));
 
-        if (!"PENDENTE".equalsIgnoreCase(taxa.getStatus()) && !"ATRASADO".equalsIgnoreCase(taxa.getStatus())) {
-            throw new IllegalStateException("Esta taxa não está pendente ou atrasada. Status atual: " + taxa.getStatus());
-        }
-        if (dataPagamento == null || dataPagamento.isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Data de pagamento inválida ou no futuro.");
+        if (!STATUS_PENDENTE.equalsIgnoreCase(pagamento.getStatus()) && !"ATRASADO".equalsIgnoreCase(pagamento.getStatus())) {
+            throw new IllegalStateException("Este pagamento já foi processado ou está com status '" + pagamento.getStatus() + "'. Apenas pagamentos PENDENTES ou ATRASADOS podem ser registrados.");
         }
 
-        taxa.setDataPagamento(dataPagamento);
-        taxa.setStatus("PAGO");
-        taxa.setAtualizadoEm(LocalDateTime.now());
-        log.info("Registrando pagamento para Taxa ID {}: Data Pgto {}, Novo Status PAGO", taxaId, dataPagamento);
-        Pagamento taxaPaga = pagamentoRepository.save(taxa);
-
-        // Lógica para "atualizar status financeiro do morador para adimplente":
-        // Isso é mais complexo. Ser adimplente pode significar não ter NENHUMA taxa PENDENTE ou ATRASADA.
-        // Uma abordagem seria:
-        // verificarAdimplenciaMorador(taxa.getMorador());
-        // Este método `verificarAdimplenciaMorador` consultaria todas as taxas do morador.
-        // Por ora, estamos apenas marcando esta taxa específica como PAGA.
-
-        return taxaPaga;
-    }
-
-    /**
-     * Lista pagamentos pendentes de todos os moradores.
-     */
-    public List<Pagamento> listarPagamentosPendentes() {
-        return pagamentoRepository.findByStatus("PENDENTE");
-    }
-
-    /**
-     * Lista todos os pagamentos (para fins de consulta, por exemplo).
-     */
-    public List<Pagamento> listarTodosPagamentos() {
-        return pagamentoRepository.findAll();
-    }
-
-    // Método auxiliar potencial para verificar e atualizar adimplência do morador
-    /*
-    @Transactional
-    private void verificarAdimplenciaMorador(Morador morador) {
-        List<Pagamento> pendencias = pagamentoRepository.findByMoradorAndStatusIn(morador, List.of("PENDENTE", "ATRASADO"));
-        if (pendencias.isEmpty()) {
-            // Marcar morador como adimplente (ex: morador.setStatusFinanceiro("ADIMPLENTE");)
-            // Isso requer um campo 'statusFinanceiro' na entidade Morador.
-            // log.info("Morador {} agora está adimplente.", morador.getNome());
+        pagamento.setDataPagamento(dataPagamentoReal != null ? dataPagamentoReal : LocalDate.now());
+        if (pagamento.getDataPagamento().isAfter(pagamento.getDataVencimento())) {
+            pagamento.setStatus("PAGO_COM_ATRASO");
         } else {
-            // Marcar morador como inadimplente
-            // log.info("Morador {} possui {} pendências financeiras.", morador.getNome(), pendencias.size());
+            pagamento.setStatus("PAGO");
         }
-        // moradorRepository.save(morador); // Se houver alteração no morador
+        pagamento.setAtualizadoEm(java.time.LocalDateTime.now());
+        log.info("Pagamento ID {} registrado como {} em {}", pagamentoId, pagamento.getStatus(), pagamento.getDataPagamento());
+        return pagamentoRepository.save(pagamento);
     }
-    */
+
+    @Transactional(readOnly = true)
+    public String gerarDadosBoleto(Long pagamentoId) {
+        Pagamento pagamento = pagamentoRepository.findById(pagamentoId)
+                .orElseThrow(() -> new IllegalArgumentException("Pagamento com ID " + pagamentoId + " não encontrado para gerar boleto."));
+
+        if (!"PENDENTE".equalsIgnoreCase(pagamento.getStatus()) && !"ATRASADO".equalsIgnoreCase(pagamento.getStatus())) {
+            throw new IllegalStateException("Boleto só pode ser gerado para pagamentos com status PENDENTE ou ATRASADO. Status atual: " + pagamento.getStatus());
+        }
+
+        Morador morador = pagamento.getMorador();
+        Condominium condominio = pagamento.getCondominio();
+
+        Random random = new Random();
+        String codigoDeBarras = String.format("858%05d%010d%010d%010d%05d",
+                condominio.getId(),
+                morador.getId(),
+                pagamento.getId(),
+                Long.parseLong(pagamento.getDataVencimento().format(DateTimeFormatter.ofPattern("yyyyMMdd"))),
+                random.nextInt(99999)
+        );
+        String linhaDigitavel = codigoDeBarras.replaceAll("(\\d{5})(\\d{5})(\\d{5})(\\d{6})(\\d{5})(\\d{6})(\\d{1})(\\d{14})",
+                "$1.$2 $3.$4 $5.$6 $7 $8");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n--- DADOS DO BOLETO ---\n");
+        sb.append("============================================================\n");
+        sb.append(String.format("Beneficiário: %s\n", condominio.getNome()));
+        sb.append(String.format("Endereço do Condomínio: %s\n", condominio.getEndereco()));
+        sb.append("------------------------------------------------------------\n");
+        sb.append(String.format("Pagador: %s\n", morador.getNome()));
+        sb.append(String.format("CPF: %s | Unidade: %s\n", morador.getCpf(), morador.getUnidade()));
+        sb.append("------------------------------------------------------------\n");
+        sb.append(String.format("Nosso Número/ID Pagamento: %d\n", pagamento.getId()));
+        sb.append(String.format("Descrição: %s\n", pagamento.getDescricao()));
+        sb.append(String.format("Data de Vencimento: %s\n", pagamento.getDataVencimento().format(DATE_FORMATTER_BOLETO)));
+        sb.append(String.format("Valor do Documento: R$ %.2f\n", pagamento.getValor()));
+        sb.append("------------------------------------------------------------\n");
+        sb.append("Instruções (geradas automaticamente):\n");
+        sb.append("- Em caso de atraso, verificar encargos com a administração.\n");
+        sb.append("- Pagável em qualquer agência bancária ou internet banking até o vencimento.\n");
+        sb.append("------------------------------------------------------------\n");
+        sb.append("Linha Digitável (Simulada):\n");
+        sb.append(linhaDigitavel + "\n");
+        sb.append("Código de Barras (Simulado):\n");
+        sb.append("||| ").append(codigoDeBarras.substring(0,10)).append(" ")
+                .append(codigoDeBarras.substring(10,20)).append(" ")
+                .append(codigoDeBarras.substring(20,30)).append(" ")
+                .append(codigoDeBarras.substring(30,40)).append(" ")
+                .append(codigoDeBarras.substring(40)).append(" |||\n");
+        sb.append("============================================================\n");
+
+        log.info("Dados do boleto gerados para Pagamento ID: {}", pagamentoId);
+        return sb.toString();
+    }
 }
