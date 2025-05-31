@@ -205,15 +205,12 @@ class VisitanteServiceTest {
 
     @Test
     void registrarEntradaVisitante_ComStatusEsperado_DeveAtualizarStatusParaChegou() {
-        // Arrange
         visitanteMock.setStatusVisita("ESPERADO"); // Garante o estado inicial
         when(visitanteRepository.findById(1L)).thenReturn(Optional.of(visitanteMock));
         when(visitanteRepository.save(any(Visitante.class))).thenReturn(visitanteMock);
 
-        // Act
         Visitante resultado = visitanteService.registrarEntradaVisitante(1L);
 
-        // Assert
         assertNotNull(resultado);
         assertEquals("CHEGOU", resultado.getStatusVisita());
         assertNotNull(resultado.getDataHoraEntradaEfetiva());
