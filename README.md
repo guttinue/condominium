@@ -48,7 +48,7 @@ O *Sistema de Gestão Condominial* é uma aplicação Java orientada a objetos q
 - *Spring Boot 3.2.5* (Framework para desenvolvimento de aplicações)
 - *Spring Data JPA* (Persistência de dados)
 - *Hibernate* (Implementação JPA)
-- *H2 Database* (Banco de Dados em memória para desenvolvimento)
+- *H2 Database* (Banco de Dados em arquivo para desenvolvimento)
 - *Maven* (Gerenciador de dependências e build)
 - *JUnit 5* (Framework de testes)
 - Arquitetura em Camadas (Apresentação CLI, Negócio e Persistência)
