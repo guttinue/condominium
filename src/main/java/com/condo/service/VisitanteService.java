@@ -137,6 +137,15 @@ public class VisitanteService {
         return visitanteRepository.findByCondominioOrderByDataHoraVisitaPrevistaDesc(condominio);
     }
 
+    public List<Visitante> listarVisitantesPresentes(Long condominioId) {
+        Condominium condominio = condominiumRepository.findById(condominioId)
+                .orElseThrow(() -> new IllegalArgumentException("Condomínio com ID " + condominioId + " não encontrado."));
+
+        log.info("Buscando visitantes com status 'CHEGOU' no condomínio {}", condominio.getNome());
+        return visitanteRepository.findByCondominioAndStatusVisitaOrderByDataHoraEntradaEfetivaDesc(
+                condominio, "CHEGOU");
+    }
+
     // Métodos para registrar entrada e saída do visitante (para Funcionário/Portaria)
     @Transactional
     public Visitante registrarEntradaVisitante(Long visitanteId) {

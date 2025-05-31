@@ -12,7 +12,7 @@ import com.condo.service.UsuarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.origin.SystemEnvironmentOrigin;
+// import org.springframework.boot.origin.SystemEnvironmentOrigin; // Removido
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -204,6 +204,7 @@ public class FuncionarioMenu {
                 return;
             }
         } catch (NumberFormatException e) {
+            // Silenciosamente ignora se não for um número, para tentar outros identificadores
         }
 
         Optional<Morador> moradorOpt = usuarioService.buscarMoradorPorIdentificador(identificador);
@@ -546,7 +547,7 @@ public class FuncionarioMenu {
 
     private void registrarEntradaVisitantePeloFuncionario(Scanner scanner, Long condominioId) {
         System.out.println("\n--- Registrar Entrada de Visitante ---");
-        listarVisitantesEsperadosHojePeloFuncionario(condominioId);
+        listarVisitantesEsperadosHojePeloFuncionario(condominioId); // Mostra visitantes para facilitar ID
         System.out.print("Digite o ID do Visitante que está entrando (ou 0 para cancelar): ");
         Long visitanteId = lerLong(scanner);
         if (visitanteId == null || visitanteId == 0) return;
@@ -562,9 +563,23 @@ public class FuncionarioMenu {
 
     private void registrarSaidaVisitantePeloFuncionario(Scanner scanner, Long condominioId) {
         System.out.println("\n--- Registrar Saída de Visitante ---");
-        System.out.print("Digite o ID do Visitante que está saindo (ou 0 para cancelar): ");
-        Long visitanteId = lerLong(scanner);
-        if (visitanteId == null || visitanteId == 0) return;
+
+        System.out.println("Visitantes atualmente DENTRO do condomínio (Status 'CHEGOU'):");
+        List<Visitante> visitantesPresentes = visitanteService.listarVisitantesPresentes(condominioId);
+        if (visitantesPresentes.isEmpty()) {
+            System.out.println("Nenhum visitante com status 'CHEGOU' encontrado para registrar saída.");
+            return;
+        } else {
+            visitantesPresentes.forEach(this::imprimirDetalhesCompletosVisitante);
+        }
+
+
+        System.out.print("\nDigite o ID do Visitante que está saindo (ou 0 para cancelar): ");
+        Long visitanteId = lerLong(scanner); // Seu método lerLong
+        if (visitanteId == null || visitanteId == 0) {
+            if (visitanteId != null && visitanteId == 0) System.out.println("Operação cancelada.");
+            return;
+        }
 
         try {
             Visitante visitante = visitanteService.registrarSaidaVisitante(visitanteId);
@@ -572,6 +587,9 @@ public class FuncionarioMenu {
             imprimirDetalhesCompletosVisitante(visitante);
         } catch (IllegalArgumentException | IllegalStateException e) {
             System.out.println("Erro ao registrar saída: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erro inesperado ao registrar saída do visitante ID {}: {}", visitanteId, e.getMessage(), e);
+            System.out.println("Ocorreu um erro inesperado.");
         }
     }
 
@@ -658,12 +676,12 @@ public class FuncionarioMenu {
             String line = scanner.nextLine();
             if (line.isBlank()) {
                 System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
-                return -99;
+                return -99; // Um valor que pode ser tratado como erro/inválido
             }
             return Integer.parseInt(line);
         } catch (NumberFormatException e) {
             System.out.println("Entrada inválida. Por favor, insira um número inteiro.");
-            return -99;
+            return -99; // Um valor que pode ser tratado como erro/inválido
         }
     }
 
@@ -672,12 +690,12 @@ public class FuncionarioMenu {
             String line = scanner.nextLine();
             if (line.isBlank()) {
                 System.out.println("Entrada inválida. Por favor, insira um número.");
-                return null;
+                return null; // Indica que a leitura falhou ou foi cancelada
             }
             return Long.parseLong(line);
         } catch (NumberFormatException e) {
             System.out.println("Entrada inválida. Por favor, insira um número (long).");
-            return null;
+            return null; // Indica que a leitura falhou
         }
     }
 }

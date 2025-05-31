@@ -22,7 +22,7 @@ public class Visitante {
     @Column(name = "unidade_destino", nullable = false, length = 100)
     private String unidadeDestino;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) // <-- MUDE AQUI DE LAZY PARA EAGER
     @JoinColumn(name = "morador_responsavel_id", nullable = false)
     private Morador moradorResponsavel;
 
@@ -51,6 +51,7 @@ public class Visitante {
 
     @Column(name = "data_hora_saida_efetiva")
     private LocalDateTime dataHoraSaidaEfetiva;
+
 
 
     public Visitante() {

@@ -6,6 +6,7 @@ import com.condo.domain.Visitante;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,5 +34,14 @@ public interface VisitanteRepository extends JpaRepository<Visitante, Long>, Jpa
 
     List<Visitante> findByCondominioOrderByDataHoraVisitaPrevistaDesc(Condominium condominio);
 
+    @Query("SELECT v FROM Visitante v JOIN FETCH v.moradorResponsavel m JOIN FETCH m.condominio WHERE v.condominio = :condominio AND v.statusVisita = :statusVisita AND v.dataHoraVisitaPrevista BETWEEN :inicioDoDia AND :fimDoDia")
+    List<Visitante> findByCondominioAndStatusVisitaAndDataHoraVisitaPrevistaBetweenEagerMorador(
+            Condominium condominio, String statusVisita, LocalDateTime inicioDoDia, LocalDateTime fimDoDia);
 
+    @Query("SELECT v FROM Visitante v JOIN FETCH v.moradorResponsavel WHERE v.moradorResponsavel = :moradorResponsavel AND v.statusVisita = :statusVisita ORDER BY v.dataHoraVisitaPrevista ASC")
+    List<Visitante> findByMoradorResponsavelAndStatusVisitaOrderByDataHoraVisitaPrevistaAscEagerMorador(
+            Morador moradorResponsavel, String statusVisita);
+
+    List<Visitante> findByCondominioAndStatusVisitaOrderByDataHoraEntradaEfetivaDesc(
+            Condominium condominio, String statusVisita);
 }
