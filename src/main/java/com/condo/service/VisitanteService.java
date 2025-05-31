@@ -6,7 +6,6 @@ import com.condo.domain.Visitante;
 import com.condo.repository.CondominiumRepository;
 import com.condo.repository.MoradorRepository;
 import com.condo.repository.VisitanteRepository;
-// Importe Specification e classes relacionadas se for usar JpaSpecificationExecutor
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList; // Para Specification
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional; // Para os filtros do histórico
+import java.util.Optional;
 
 @Service
 public class VisitanteService {
@@ -27,7 +26,7 @@ public class VisitanteService {
 
     private final VisitanteRepository visitanteRepository;
     private final MoradorRepository moradorRepository; // Para buscar Morador ao registrar
-    private final CondominiumRepository condominiumRepository; // Para escopo de condomínio
+    private final CondominiumRepository condominiumRepository;
 
     @Autowired
     public VisitanteService(VisitanteRepository visitanteRepository,
@@ -67,9 +66,6 @@ public class VisitanteService {
         return visitanteRepository.save(novoVisitante);
     }
 
-    /**
-     * Lista os visitantes com status "ESPERADO" para o dia atual e para um condomínio específico.
-     */
     public List<Visitante> listarVisitantesEsperadosHoje(Long condominioId) {
         Condominium condominio = condominiumRepository.findById(condominioId)
                 .orElseThrow(() -> new IllegalArgumentException("Condomínio com ID " + condominioId + " não encontrado."));
@@ -82,9 +78,6 @@ public class VisitanteService {
                 condominio, "ESPERADO", inicioDoDia, fimDoDia);
     }
 
-    /**
-     * Lista os visitantes com status "ESPERADO" para um morador específico.
-     */
     public List<Visitante> listarVisitantesEsperadosPorMorador(Long moradorId) {
         Morador morador = moradorRepository.findById(moradorId)
                 .orElseThrow(() -> new IllegalArgumentException("Morador com ID " + moradorId + " não encontrado."));
@@ -93,9 +86,6 @@ public class VisitanteService {
                 morador, "ESPERADO");
     }
 
-    /**
-     * Lista todos os visitantes registrados por um morador.
-     */
     public List<Visitante> listarTodosVisitantesPorMorador(Long moradorId) {
         Morador morador = moradorRepository.findById(moradorId)
                 .orElseThrow(() -> new IllegalArgumentException("Morador com ID " + moradorId + " não encontrado."));
@@ -103,11 +93,6 @@ public class VisitanteService {
         return visitanteRepository.findByMoradorResponsavelOrderByDataHoraVisitaPrevistaDesc(morador);
     }
 
-
-    /**
-     * Consulta o histórico de visitantes com base em filtros.
-     * TODO: Implementar filtros mais robustos usando JpaSpecificationExecutor ou múltiplos métodos no repositório.
-     */
     public List<Visitante> consultarHistoricoVisitantes(Long condominioId, Optional<String> nomeFiltro,
                                                         Optional<LocalDate> dataFiltro,
                                                         Optional<String> unidadeFiltro) {
@@ -146,7 +131,6 @@ public class VisitanteService {
                 condominio, "CHEGOU");
     }
 
-    // Métodos para registrar entrada e saída do visitante (para Funcionário/Portaria)
     @Transactional
     public Visitante registrarEntradaVisitante(Long visitanteId) {
         Visitante visitante = visitanteRepository.findById(visitanteId)

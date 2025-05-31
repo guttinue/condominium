@@ -75,10 +75,6 @@ public class VeiculoService {
         veiculoRepository.delete(veiculo);
     }
 
-    /**
-     * Lista todos os veículos de um determinado condomínio.
-     * Usado pelo Funcionário.
-     */
     public List<Veiculo> listarTodosVeiculosPorCondominio(Long condominioId) {
         Condominium condominio = condominiumRepository.findById(condominioId)
                 .orElseThrow(() -> new IllegalArgumentException("Condomínio com ID " + condominioId + " não encontrado."));
