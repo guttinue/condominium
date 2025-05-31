@@ -1,13 +1,15 @@
+// src/main/java/com/condo/menu/SindicoMenu.java
 package com.condo.menu;
 
+import com.condo.domain.Comunicado;
+import com.condo.domain.Condominium;
 import com.condo.domain.Morador;
 import com.condo.domain.ReportManutencao;
 import com.condo.domain.Reserva;
 import com.condo.domain.Sindico;
+import com.condo.service.ComunicadoService;
 import com.condo.service.ManutencaoService;
 import com.condo.service.ReservaService;
-// import com.condo.service.AssembleiaService;
-// import com.condo.service.RelatorioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,20 +23,20 @@ import java.util.InputMismatchException;
 @Component
 public class SindicoMenu {
 
-    private static final Logger log = LoggerFactory.getLogger(FuncionarioMenu.class);
+    private static final Logger log = LoggerFactory.getLogger(SindicoMenu.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter DATETIME_FORMATTER_DISPLAY = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final ReservaService reservaService;
     private final ManutencaoService manutencaoService;
-    // private final AssembleiaService assembleiaService;
-    // private final RelatorioService relatorioService;
+    private final ComunicadoService comunicadoService;
 
     @Autowired
-    public SindicoMenu(ReservaService reservaService, ManutencaoService manutencaoService) {
+    public SindicoMenu(ReservaService reservaService, ManutencaoService manutencaoService, ComunicadoService comunicadoService) {
         this.reservaService = reservaService;
         this.manutencaoService = manutencaoService;
+        this.comunicadoService = comunicadoService;
     }
 
     public void exibirMenu(Scanner scanner, Sindico sindicoLogado) {
@@ -43,8 +45,10 @@ public class SindicoMenu {
             System.out.println("\n--- Menu do Síndico (" + sindicoLogado.getNome() + ") ---");
             System.out.println("1. Gerenciar Reservas de Áreas Comuns");
             System.out.println("2. Monitorar Solicitações de Manutenção");
-            System.out.println("3. Gerenciar Assembleias (Não implementado)");
-            System.out.println("4. Visualizar Relatórios Financeiros (Não implementado)");
+            System.out.println("3. Criar Novo Comunicado");
+            System.out.println("4. Listar Comunicados do Condomínio");
+            System.out.println("5. Gerenciar Assembleias (Não implementado)");
+            System.out.println("6. Visualizar Relatórios Financeiros (Não implementado)");
             System.out.println("0. Voltar (Logout)");
             System.out.print("Escolha uma opção: ");
 
@@ -59,9 +63,15 @@ public class SindicoMenu {
                         monitorarManutencoes(scanner, sindicoLogado);
                         break;
                     case 3:
-                        System.out.println("Funcionalidade de Gerenciar Assembleias ainda não implementada.");
+                        criarNovoComunicado(scanner, sindicoLogado);
                         break;
                     case 4:
+                        listarComunicadosDoCondominio(sindicoLogado);
+                        break;
+                    case 5:
+                        System.out.println("Funcionalidade de Gerenciar Assembleias ainda não implementada.");
+                        break;
+                    case 6:
                         System.out.println("Funcionalidade de Relatórios Financeiros ainda não implementada.");
                         break;
                     case 0:
@@ -73,7 +83,7 @@ public class SindicoMenu {
                 }
             } catch (Exception e) {
                 log.error("Erro no menu do síndico: {}", e.getMessage(), e);
-                System.out.println("Ocorreu um erro inesperado: " + e.getMessage() + ". Tente novamente.");
+                System.err.println("Ocorreu um erro inesperado: " + e.getMessage() + ". Tente novamente.");
             }
         }
     }
@@ -82,8 +92,8 @@ public class SindicoMenu {
         boolean subMenuContinuar = true;
         while (subMenuContinuar) {
             System.out.println("\n--- Gerenciar Reservas ---");
-            System.out.println("1. Listar Todas as Reservas");
-            System.out.println("2. Listar Reservas Pendentes");
+            System.out.println("1. Listar Todas as Reservas do Condomínio");
+            System.out.println("2. Listar Reservas Pendentes do Condomínio");
             System.out.println("3. Aprovar Reserva");
             System.out.println("4. Rejeitar Reserva");
             System.out.println("0. Voltar ao Menu Principal do Síndico");
@@ -93,10 +103,10 @@ public class SindicoMenu {
 
             switch (opcaoReserva) {
                 case 1:
-                    listarTodasReservas();
+                    listarTodasReservas(sindicoLogado);
                     break;
                 case 2:
-                    listarReservasPorStatus("PENDENTE");
+                    listarReservasPorStatus("PENDENTE", sindicoLogado);
                     break;
                 case 3:
                     aprovarReserva(scanner, sindicoLogado);
@@ -128,18 +138,28 @@ public class SindicoMenu {
         }
     }
 
-    private void listarTodasReservas() {
-        List<Reserva> reservas = reservaService.listarTodasAsReservas();
-        if (reservas.isEmpty()) {
-            System.out.println("Nenhuma reserva encontrada.");
+    private void listarTodasReservas(Sindico sindicoLogado) {
+        Condominium condominio = sindicoLogado.getCondominio();
+        if (condominio == null) {
+            System.err.println("Síndico não associado a um condomínio.");
             return;
         }
-        System.out.println("\n--- Todas as Reservas ---");
+        List<Reserva> reservas = reservaService.listarTodasReservasPorCondominio(condominio);
+        if (reservas.isEmpty()) {
+            System.out.println("Nenhuma reserva encontrada para este condomínio.");
+            return;
+        }
+        System.out.println("\n--- Todas as Reservas do Condomínio ---");
         imprimirDetalhesReserva(reservas);
     }
 
-    private void listarReservasPorStatus(String status) {
-        List<Reserva> reservas = reservaService.listarReservasPorStatus(status);
+    private void listarReservasPorStatus(String status, Sindico sindicoLogado) {
+        Condominium condominio = sindicoLogado.getCondominio();
+        if (condominio == null) {
+            System.err.println("Síndico não associado a um condomínio.");
+            return;
+        }
+        List<Reserva> reservas = reservaService.listarReservasPendentesPorCondominioEStatus(condominio, status);
         if (reservas.isEmpty()) {
             System.out.println("Nenhuma reserva encontrada com o status: " + status);
             return;
@@ -149,7 +169,7 @@ public class SindicoMenu {
     }
 
     private void aprovarReserva(Scanner scanner, Sindico sindicoLogado) {
-        listarReservasPorStatus("PENDENTE");
+        listarReservasPorStatus("PENDENTE", sindicoLogado);
         System.out.print("Digite o ID da reserva para APROVAR (ou 0 para cancelar): ");
         Long reservaId = lerLong(scanner);
         if (reservaId == null || reservaId == 0) {
@@ -161,13 +181,13 @@ public class SindicoMenu {
         try {
             Reserva reservaAprovada = reservaService.aprovarReserva(reservaId, sindicoLogado);
             System.out.println("Reserva ID " + reservaAprovada.getId() + " aprovada com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            System.out.println("Erro ao aprovar reserva: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            System.err.println("Erro ao aprovar reserva: " + e.getMessage());
         }
     }
 
     private void rejeitarReserva(Scanner scanner, Sindico sindicoLogado) {
-        listarReservasPorStatus("PENDENTE");
+        listarReservasPorStatus("PENDENTE", sindicoLogado);
         System.out.print("Digite o ID da reserva para REJEITAR (ou 0 para cancelar): ");
         Long reservaId = lerLong(scanner);
         if (reservaId == null || reservaId == 0) {
@@ -180,10 +200,11 @@ public class SindicoMenu {
         String motivo = scanner.nextLine();
 
         try {
+            // CHAMADA CORRETA:
             Reserva reservaRejeitada = reservaService.rejeitarReserva(reservaId, sindicoLogado, motivo);
             System.out.println("Reserva ID " + reservaRejeitada.getId() + " rejeitada com sucesso.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            System.out.println("Erro ao rejeitar reserva: " + e.getMessage());
+        } catch (IllegalArgumentException | IllegalStateException | SecurityException e) {
+            System.err.println("Erro ao rejeitar reserva: " + e.getMessage());
         }
     }
 
@@ -229,8 +250,7 @@ public class SindicoMenu {
             System.out.println("ID: " + report.getId() + " | Local: " + report.getLocal() +
                     " | Descrição: " + report.getDescricao() +
                     " | Status: " + report.getStatus() +
-                    " | Criado em: " + report.getCriadoEm().format(DATETIME_FORMATTER));
-            // Adicionar exibição de comentários se implementado no futuro
+                    " | Criado em: " + report.getCriadoEm().format(DATETIME_FORMATTER_DISPLAY));
         }
     }
 
@@ -275,7 +295,7 @@ public class SindicoMenu {
             System.out.println("Status da solicitação ID " + reportAtualizado.getId() + " atualizado para "
                     + reportAtualizado.getStatus());
         } catch (IllegalArgumentException | IllegalStateException e) {
-            System.out.println("Erro ao atualizar status: " + e.getMessage());
+            System.err.println("Erro ao atualizar status: " + e.getMessage());
         }
     }
 
@@ -301,30 +321,109 @@ public class SindicoMenu {
             System.out.println("Comentário adicionado à solicitação ID " + reportId
                     + ". (Observação: persistência do comentário depende da implementação no service)");
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro ao adicionar comentário: " + e.getMessage());
+            System.err.println("Erro ao adicionar comentário: " + e.getMessage());
+        }
+    }
+
+    private void criarNovoComunicado(Scanner scanner, Sindico sindicoLogado) {
+        System.out.println("\n--- Criar Novo Comunicado ---");
+
+        Condominium condominioDoSindico = sindicoLogado.getCondominio();
+        if (condominioDoSindico == null) {
+            System.err.println("ERRO: Síndico não está associado a um condomínio. Não é possível criar comunicado.");
+            log.warn("Tentativa de criar comunicado por síndico {} sem condomínio associado.", sindicoLogado.getEmail());
+            return;
+        }
+
+        System.out.print("Título do comunicado: ");
+        String titulo = scanner.nextLine();
+        if (titulo.trim().isEmpty()) {
+            System.out.println("O título não pode ser vazio.");
+            return;
+        }
+
+        System.out.println("Conteúdo do comunicado (digite '~FIM' em uma nova linha para terminar):");
+        StringBuilder conteudoBuilder = new StringBuilder();
+        String linha;
+        while (!(linha = scanner.nextLine()).equalsIgnoreCase("~FIM")) {
+            conteudoBuilder.append(linha).append(System.lineSeparator());
+        }
+        String conteudo = conteudoBuilder.toString().trim();
+
+        if (conteudo.isEmpty()) {
+            System.out.println("O conteúdo não pode ser vazio.");
+            return;
+        }
+
+        try {
+            Comunicado novoComunicado = comunicadoService.criarComunicado(titulo, conteudo, sindicoLogado, condominioDoSindico);
+            System.out.println("Comunicado criado com sucesso!");
+            System.out.println("ID: " + novoComunicado.getId() + " | Título: " + novoComunicado.getTitulo());
+        } catch (IllegalArgumentException | SecurityException e) {
+            System.err.println("Erro ao criar comunicado: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erro inesperado ao criar comunicado pelo síndico {}: {}", sindicoLogado.getEmail(), e.getMessage(), e);
+            System.err.println("Ocorreu um erro inesperado ao criar o comunicado.");
+        }
+    }
+
+    private void imprimirDetalhesComunicado(Comunicado comunicado) {
+        System.out.println("--------------------------------------------------");
+        System.out.println("ID: " + comunicado.getId());
+        System.out.println("Título: " + comunicado.getTitulo());
+        System.out.println("Publicado por: " + (comunicado.getSindico() != null ? comunicado.getSindico().getNome() : "N/A"));
+        System.out.println("Data de Publicação: " + comunicado.getDataPublicacao().format(DATETIME_FORMATTER_DISPLAY));
+        System.out.println("Conteúdo:\n" + comunicado.getConteudo());
+        System.out.println("--------------------------------------------------");
+    }
+
+    private void listarComunicadosDoCondominio(Sindico sindicoLogado) {
+        System.out.println("\n--- Comunicados do Condomínio ---");
+        Condominium condominio = sindicoLogado.getCondominio();
+        if (condominio == null) {
+            System.err.println("Síndico não está associado a um condomínio.");
+            return;
+        }
+        try {
+            List<Comunicado> comunicados = comunicadoService.listarComunicadosPorCondominio(condominio);
+            if (comunicados.isEmpty()) {
+                System.out.println("Nenhum comunicado encontrado para este condomínio.");
+            } else {
+                comunicados.forEach(this::imprimirDetalhesComunicado);
+            }
+        } catch (IllegalArgumentException e) {
+            System.err.println("Erro ao listar comunicados: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erro inesperado ao listar comunicados do condomínio {} pelo síndico {}: {}",
+                    condominio.getId(), sindicoLogado.getEmail(), e.getMessage(), e);
+            System.err.println("Ocorreu um erro inesperado ao listar os comunicados.");
         }
     }
 
     private int lerInt(Scanner scanner) {
         try {
-            int valor = scanner.nextInt();
-            scanner.nextLine();
-            return valor;
-        } catch (InputMismatchException e) {
-            System.out.println("Entrada inválida. Deve ser um número inteiro.");
-            scanner.nextLine();
-            return -1;
+            String line = scanner.nextLine();
+            if (line.isBlank()) {
+                System.err.println("Entrada inválida. Por favor, insira um número inteiro.");
+                return -99;
+            }
+            return Integer.parseInt(line);
+        } catch (NumberFormatException e) {
+            System.err.println("Entrada inválida. Por favor, insira um número inteiro.");
+            return -99;
         }
     }
 
     private Long lerLong(Scanner scanner) {
         try {
-            long valor = scanner.nextLong();
-            scanner.nextLine();
-            return valor;
-        } catch (InputMismatchException e) {
-            System.out.println("Entrada inválida. Deve ser um número.");
-            scanner.nextLine();
+            String line = scanner.nextLine();
+            if (line.isBlank()) {
+                System.err.println("Entrada inválida. Por favor, insira um número.");
+                return null;
+            }
+            return Long.parseLong(line);
+        } catch (NumberFormatException e) {
+            System.err.println("Entrada inválida. Por favor, insira um número (long).");
             return null;
         }
     }

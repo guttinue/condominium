@@ -1,171 +1,180 @@
-package com.condo.service; // Confirme se este é o seu pacote
+// src/main/java/com/condo/service/ReservaService.java
+package com.condo.service;
 
 import com.condo.domain.AreaComum;
+import com.condo.domain.Condominium;
 import com.condo.domain.Morador;
 import com.condo.domain.Reserva;
 import com.condo.domain.Sindico;
 import com.condo.repository.AreaComumRepository;
+import com.condo.repository.MoradorRepository;   // 1. VERIFIQUE ESTE IMPORT
 import com.condo.repository.ReservaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReservaService {
 
+    private static final Logger log = LoggerFactory.getLogger(ReservaService.class);
+
     private final ReservaRepository reservaRepository;
     private final AreaComumRepository areaComumRepository;
+    private final MoradorRepository moradorRepository; // 2. VERIFIQUE A DECLARAÇÃO DO CAMPO
 
     @Autowired
-    public ReservaService(ReservaRepository reservaRepository, AreaComumRepository areaComumRepository) {
+    public ReservaService(ReservaRepository reservaRepository,
+                          AreaComumRepository areaComumRepository,
+                          MoradorRepository moradorRepository) { // 3. VERIFIQUE O PARÂMETRO NO CONSTRUTOR
         this.reservaRepository = reservaRepository;
         this.areaComumRepository = areaComumRepository;
+        this.moradorRepository = moradorRepository; // 4. VERIFIQUE A ATRIBUIÇÃO NO CONSTRUTOR
     }
 
-    // --- Métodos para Áreas Comuns (chamados pelo MoradorMenu) ---
+    // Restante dos seus métodos do ReservaService...
 
-    /**
-     * Lista todas as áreas comuns disponíveis.
-     * @return Uma lista de todas as áreas comuns.
-     */
     public List<AreaComum> listarAreasComuns() {
         return areaComumRepository.findAll();
     }
 
-    /**
-     * Busca uma área comum específica pelo seu ID.
-     * @param id O ID da área comum.
-     * @return Um Optional contendo a AreaComum se encontrada, ou vazio caso contrário.
-     */
     public Optional<AreaComum> buscarAreaComumPorId(Long id) {
         return areaComumRepository.findById(id);
     }
 
-    // --- Métodos de Gerenciamento de Reservas (usados por MoradorMenu e SindicoMenu) ---
-
-    public List<Reserva> listarTodasAsReservas() {
-        return reservaRepository.findAll();
-    }
-
-    public List<Reserva> listarReservasPorStatus(String status) {
-        if (status == null || status.trim().isEmpty()) {
-            System.out.println("Status para busca de reservas não pode ser vazio.");
-            return Collections.emptyList();
+    public boolean verificarDisponibilidade(AreaComum areaComum, LocalDate data, LocalTime horaInicio, LocalTime horaFim) {
+        List<Reserva> reservasExistentes = reservaRepository.findByAreaComumAndData(areaComum, data);
+        for (Reserva existente : reservasExistentes) {
+            if ("APROVADA".equalsIgnoreCase(existente.getStatus()) || "PENDENTE".equalsIgnoreCase(existente.getStatus())) {
+                if (horaInicio.isBefore(existente.getHoraFim()) && horaFim.isAfter(existente.getHoraInicio())) {
+                    return false;
+                }
+            }
         }
-        return reservaRepository.findByStatus(status.toUpperCase());
-    }
-
-    /**
-     * Lista todas as reservas feitas por um morador específico.
-     * @param morador O morador.
-     * @return Lista de reservas do morador.
-     */
-    public List<Reserva> listarReservasPorMorador(Morador morador) {
-        if (morador == null) {
-            System.out.println("Morador não pode ser nulo para listar suas reservas.");
-            return Collections.emptyList();
-        }
-        return reservaRepository.findByMorador(morador);
-    }
-
-    @Transactional
-    public Reserva aprovarReserva(Long reservaId, Sindico sindicoAprovador) {
-        Reserva reserva = reservaRepository.findById(reservaId)
-                .orElseThrow(() -> new IllegalArgumentException("Reserva com ID " + reservaId + " não encontrada."));
-
-        if (!"PENDENTE".equalsIgnoreCase(reserva.getStatus())) {
-            throw new IllegalStateException("Somente reservas com status PENDENTE podem ser aprovadas. Status atual: " + reserva.getStatus());
-        }
-        reserva.setStatus("APROVADA");
-        return reservaRepository.save(reserva);
-    }
-
-    @Transactional
-    public Reserva rejeitarReserva(Long reservaId, Sindico sindicoRejeitador, String motivo) {
-        Reserva reserva = reservaRepository.findById(reservaId)
-                .orElseThrow(() -> new IllegalArgumentException("Reserva com ID " + reservaId + " não encontrada."));
-
-        if (!"PENDENTE".equalsIgnoreCase(reserva.getStatus())) {
-            throw new IllegalStateException("Somente reservas com status PENDENTE podem ser rejeitadas. Status atual: " + reserva.getStatus());
-        }
-        reserva.setStatus("REJEITADA");
-        // Adicionar lógica para motivo se necessário na entidade Reserva
-        return reservaRepository.save(reserva);
+        return true;
     }
 
     @Transactional
     public Reserva criarReserva(Morador morador, Long areaComumId, LocalDate data, LocalTime horaInicio, LocalTime horaFim) {
         AreaComum areaComum = areaComumRepository.findById(areaComumId)
-                .orElseThrow(() -> new IllegalArgumentException("Área comum com ID " + areaComumId + " não encontrada."));
+                .orElseThrow(() -> new IllegalArgumentException("Área comum não encontrada com ID: " + areaComumId));
 
-        if (morador == null) {
-            throw new IllegalArgumentException("Morador não pode ser nulo para criar uma reserva.");
+        // Exemplo de onde moradorRepository poderia ser usado (embora não seja estritamente necessário aqui
+        // se o objeto Morador já vem completo e validado de quem chamou o serviço).
+        // Se você precisasse buscar o morador por ID aqui:
+        // Morador moradorPersistido = moradorRepository.findById(morador.getId())
+        //       .orElseThrow(() -> new IllegalArgumentException("Morador não encontrado com ID: " + morador.getId()));
+
+
+        if (morador.getCondominio() == null || areaComum.getCondominio() == null || !morador.getCondominio().getId().equals(areaComum.getCondominio().getId())) {
+            throw new IllegalArgumentException("Morador não pertence ao mesmo condomínio da área comum solicitada.");
         }
+
+
         if (data.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("Não é possível fazer reservas para datas passadas.");
+            throw new IllegalArgumentException("A data da reserva não pode ser no passado.");
         }
         if (horaInicio.isAfter(horaFim) || horaInicio.equals(horaFim)) {
-            throw new IllegalArgumentException("A hora de início deve ser anterior à hora de fim.");
+            throw new IllegalArgumentException("A hora de início deve ser anterior à hora de término.");
         }
 
-        // TODO: Implementar lógica robusta para verificar conflitos de horário.
-        // Exemplo:
-        // List<Reserva> conflitos = reservaRepository.findByAreaComumAndDataAndHorarioConflitante(areaComum, data, horaInicio, horaFim);
-        // if (!conflitos.isEmpty()) {
-        //     throw new IllegalStateException("Já existe uma reserva para esta área neste horário.");
-        // }
+        if (!verificarDisponibilidade(areaComum, data, horaInicio, horaFim)) {
+            throw new IllegalStateException("Horário indisponível para a área " + areaComum.getNome() + " na data " + data);
+        }
 
-        Reserva novaReserva = new Reserva();
-        novaReserva.setMorador(morador);
-        novaReserva.setAreaComum(areaComum);
-        novaReserva.setData(data);
-        novaReserva.setHoraInicio(horaInicio);
-        novaReserva.setHoraFim(horaFim);
-        novaReserva.setStatus("PENDENTE");
-        novaReserva.setDataSolicitacao(LocalDateTime.now());
-
+        Reserva novaReserva = new Reserva(areaComum, morador, data, horaInicio, horaFim, "PENDENTE");
+        log.info("Morador {} solicitou reserva para {} em {} das {} às {}", morador.getNome(), areaComum.getNome(), data, horaInicio, horaFim);
         return reservaRepository.save(novaReserva);
     }
 
-    /**
-     * Cancela uma reserva feita por um morador.
-     * @param reservaId O ID da reserva a ser cancelada.
-     * @param moradorSolicitante O morador que está solicitando o cancelamento.
-     * @return true se a reserva foi cancelada, false caso contrário (embora exceções sejam preferíveis).
-     * @throws IllegalArgumentException Se a reserva não for encontrada.
-     * @throws IllegalStateException Se a reserva não puder ser cancelada (ex: status não permite).
-     * @throws SecurityException Se o morador não for o dono da reserva.
-     */
-    @Transactional
-    public boolean cancelarReserva(Long reservaId, Morador moradorSolicitante) {
-        Reserva reserva = reservaRepository.findById(reservaId)
-                .orElseThrow(() -> new IllegalArgumentException("Reserva com ID " + reservaId + " não encontrada."));
-
-        // Verifica se o morador que está tentando cancelar é o mesmo que fez a reserva
-        if (!reserva.getMorador().getId().equals(moradorSolicitante.getId())) {
-            throw new SecurityException("Você não tem permissão para cancelar esta reserva.");
-        }
-
-        // Define quais status permitem cancelamento
-        if ("PENDENTE".equalsIgnoreCase(reserva.getStatus()) || "APROVADA".equalsIgnoreCase(reserva.getStatus())) {
-            reserva.setStatus("CANCELADA_PELO_MORADOR");
-            // Você pode adicionar um campo dataCancelamento se quiser
-            // reserva.setDataCancelamento(LocalDateTime.now());
-            reservaRepository.save(reserva);
-            return true;
-        } else {
-            throw new IllegalStateException("Esta reserva não pode ser cancelada pois seu status é: " + reserva.getStatus());
-        }
+    public List<Reserva> listarReservasPorMorador(Morador morador) {
+        return reservaRepository.findByMorador(morador);
     }
 
-    public Optional<Reserva> buscarPorId(Long id) {
-        return reservaRepository.findById(id);
+    @Transactional
+    public boolean cancelarReserva(Long reservaId, Morador morador) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva não encontrada com ID: " + reservaId));
+
+        if (!reserva.getMorador().getId().equals(morador.getId())) {
+            throw new SecurityException("Morador não autorizado a cancelar esta reserva.");
+        }
+        if (!("PENDENTE".equalsIgnoreCase(reserva.getStatus()) || "APROVADA".equalsIgnoreCase(reserva.getStatus()))) {
+            throw new IllegalStateException("Apenas reservas PENDENTES ou APROVADAS podem ser canceladas. Status atual: " + reserva.getStatus());
+        }
+        if (reserva.getData().isBefore(LocalDate.now().plusDays(1)) && "APROVADA".equalsIgnoreCase(reserva.getStatus())) {
+            throw new IllegalStateException("Não é possível cancelar uma reserva APROVADA com menos de 24 horas de antecedência.");
+        }
+        reserva.setStatus("CANCELADA_PELO_MORADOR");
+        log.info("Reserva ID {} cancelada pelo morador {}", reservaId, morador.getNome());
+        reservaRepository.save(reserva);
+        return true;
+    }
+
+    @Transactional(readOnly = true)
+    public List<Reserva> listarTodasReservasPorCondominio(Condominium condominio) {
+        if (condominio == null) {
+            log.warn("Tentativa de listar todas as reservas para um condomínio nulo.");
+            throw new IllegalArgumentException("Condomínio não pode ser nulo.");
+        }
+        log.info("Listando todas as reservas para o condomínio ID: {}", condominio.getId());
+        return reservaRepository.findAllByCondominio(condominio);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Reserva> listarReservasPendentesPorCondominioEStatus(Condominium condominio, String status) {
+        if (condominio == null) {
+            log.warn("Tentativa de listar reservas pendentes para um condomínio nulo.");
+            throw new IllegalArgumentException("Condomínio não pode ser nulo.");
+        }
+        if (status == null || status.trim().isEmpty()) {
+            log.warn("Tentativa de listar reservas por condomínio com status vazio.");
+            throw new IllegalArgumentException("Status não pode ser vazio.");
+        }
+        String statusUpper = status.toUpperCase();
+        log.info("Listando reservas com status '{}' para o condomínio ID: {}", statusUpper, condominio.getId());
+        return reservaRepository.findAllByCondominioAndStatus(condominio, statusUpper);
+    }
+
+    @Transactional
+    public Reserva aprovarReserva(Long reservaId, Sindico sindico) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva não encontrada com ID: " + reservaId));
+
+        if (sindico.getCondominio() == null || reserva.getAreaComum().getCondominio() == null || !sindico.getCondominio().getId().equals(reserva.getAreaComum().getCondominio().getId())) {
+            throw new SecurityException("Síndico não autorizado a gerenciar reservas deste condomínio.");
+        }
+
+        if (!"PENDENTE".equalsIgnoreCase(reserva.getStatus())) {
+            throw new IllegalStateException("Apenas reservas com status PENDENTE podem ser aprovadas. Status atual: " + reserva.getStatus());
+        }
+        reserva.setStatus("APROVADA");
+        log.info("Reserva ID {} (Morador: {}) aprovada pelo Síndico {}", reservaId, reserva.getMorador().getNome(), sindico.getNome());
+        return reservaRepository.save(reserva);
+    }
+
+    @Transactional
+    public Reserva rejeitarReserva(Long reservaId, Sindico sindico, String motivo) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new IllegalArgumentException("Reserva não encontrada com ID: " + reservaId));
+
+        if (sindico.getCondominio() == null || reserva.getAreaComum().getCondominio() == null || !sindico.getCondominio().getId().equals(reserva.getAreaComum().getCondominio().getId())) {
+            throw new SecurityException("Síndico não autorizado a gerenciar reservas deste condomínio.");
+        }
+
+        if (!"PENDENTE".equalsIgnoreCase(reserva.getStatus())) {
+            throw new IllegalStateException("Apenas reservas com status PENDENTE podem ser rejeitadas. Status atual: " + reserva.getStatus());
+        }
+        reserva.setStatus("REJEITADA");
+        log.info("Reserva ID {} (Morador: {}) rejeitada pelo Síndico {}. Motivo: {}",
+                reservaId, reserva.getMorador().getNome(), sindico.getNome(), (motivo != null && !motivo.trim().isEmpty() ? motivo : "Não especificado"));
+        return reservaRepository.save(reserva);
     }
 }
