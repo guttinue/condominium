@@ -4,7 +4,7 @@
 
 ## 📌 Visão Geral
 
-O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos que visa resolver problemas administrativos comuns em condomínios, como inadimplência, conflitos entre moradores e manutenção deficiente das áreas comuns. O objetivo é fornecer uma plataforma digital eficaz para gerenciar, automatizar e otimizar processos internos condominiais.
+O *Sistema de Gestão Condominial* é uma aplicação Java orientada a objetos que visa resolver problemas administrativos comuns em condomínios, como inadimplência, conflitos entre moradores e manutenção deficiente das áreas comuns. O objetivo é fornecer uma plataforma digital eficaz para gerenciar, automatizar e otimizar processos internos condominiais.
 
 ---
 
@@ -42,19 +42,147 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠 Tecnologias Utilizadas
 
-- **Java** (Programação Orientada a Objetos)
-- Persistência de dados (Banco de Dados – a definir)
-- Arquitetura em Camadas (Apresentação, Negócio e Persistência)
+- *Java 21* (Programação Orientada a Objetos)
+- *Spring Boot 3.2.5* (Framework para desenvolvimento de aplicações)
+- *Spring Data JPA* (Persistência de dados)
+- *Hibernate* (Implementação JPA)
+- *H2 Database* (Banco de Dados em memória para desenvolvimento)
+- *Maven* (Gerenciador de dependências e build)
+- *JUnit 5* (Framework de testes)
+- Arquitetura em Camadas (Apresentação CLI, Negócio e Persistência)
 
 ---
 
-## 📂 Estrutura do Projeto (em breve)
+## 🚀 Configuração do Ambiente e Execução do Projeto
 
-<pre><code>git clone <link do repositório> (em breve)</code></pre> 
+Esta seção guiará você na configuração do ambiente necessário para compilar e executar o projeto.
 
-## 🗂️ Entrega 01
+### ✅ Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado em seu sistema:
+
+- **Java Development Kit (JDK)**: Versão 21 ou superior  
+  [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) ou [OpenJDK](https://openjdk.org/)
+- **Apache Maven**: Versão 3.6.x ou superior  
+  [Download Maven](https://maven.apache.org/download.cgi)
+- **Git**: Para clonar o repositório  
+  [Download Git](https://git-scm.com/downloads)
+- **IDE (opcional, mas recomendado)**:
+  - IntelliJ IDEA (Community ou Ultimate)
+  - Visual Studio Code com extensões de Java e Spring Boot
+  - Eclipse IDE for Java Developers
+
+---
+
+### ⚙️ Passos para Configuração e Execução
+
+#### 1. Clonar o Repositório
+
+```bash
+git clone https://github.com/guttinue/condominium
+cd condominium
+```
+
+#### 2. Compilar o Projeto com Maven
+
+```bash
+mvn clean install
+```
+
+> Este comando também executa os testes automatizados.  
+> Para compilar rapidamente sem rodar os testes:
+
+```bash
+mvn clean install -DskipTests
+```
+
+#### 3. Executar a Aplicação
+
+Após o build, execute o JAR gerado:
+
+```bash
+java -jar target/condominium-0.0.1-SNAPSHOT.jar
+```
+
+Ou, durante o desenvolvimento, execute via Maven:
+
+```bash
+mvn spring-boot:run
+```
+
+---
+
+### 🧪 Acessando o Banco de Dados H2 (Durante a Execução)
+
+Este projeto utiliza um banco de dados H2 em memória. Os dados são reiniciados a cada execução, mas podem ser preenchidos automaticamente via `data.sql`.
+
+#### 1. Ative o console H2 no `application.properties`:
+
+```properties
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+```
+
+#### 2. Acesse no navegador:
+
+```
+http://localhost:8080/h2-console
+```
+
+#### 3. Dados de acesso padrão:
+
+- **Driver Class**: `org.h2.Driver`
+- **JDBC URL**: `jdbc:h2:mem:condo`
+- **User Name**: `sa`
+- **Password**: *(vazio ou definido no application.properties)*
+
+Clique em **Connect** para acessar e consultar os dados com SQL.
+
+---
+
+### 🗃️ Dados Iniciais
+
+O arquivo `src/main/resources/data.sql` é executado automaticamente se a configuração estiver assim:
+
+```properties
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.defer-datasource-initialization=true
+```
+
+Ele popula o sistema com exemplos de:
+- Condomínios
+- Áreas comuns
+- Usuários (moradores, síndico, funcionário)
+
+---
+
+### 📂 Estrutura do Projeto (Visão Simplificada)
+
+```
+condominium/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/condo/
+│   │   │       ├── CondominiumCliApplication.java
+│   │   │       ├── domain/
+│   │   │       ├── menu/
+│   │   │       ├── repository/
+│   │   │       └── service/
+│   │   └── resources/
+│   │       ├── application.properties
+│   │       └── data.sql
+│   └── test/
+│       └── java/
+│           └── com/condo/
+├── pom.xml
+└── README.md
+```
+
+---
+## 🗂 Entrega 01
 
 <details>
 <summary><b>📌 Histórias do Usuário</b></summary>
@@ -77,14 +205,14 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 </details>
 
 <details>
-<summary><b>🖥️ Protótipo Lo-Fi</b></summary>
+<summary><b>🖥 Protótipo Lo-Fi</b></summary>
 
 <br>
 
-📁 **Protótipos iniciais Lo-Fi das principais telas**  
+📁 *Protótipos iniciais Lo-Fi das principais telas*  
 🔗 [Clique aqui para visualizar os protótipos](https://drive.google.com/file/d/1izdiABJx6wsdaE88PcFmbcOxtpXIwX8a/view?usp=sharing)
 
-**Telas prototipadas:**
+*Telas prototipadas:*
 - Tela de Login  
 - Tela Inicial (Dashboard do Morador)  
 - Cadastro de Morador  
@@ -100,27 +228,27 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 
 <br>
 
-▶️ **Demonstração das funcionalidades entregues nesta etapa**  
+▶ *Demonstração das funcionalidades entregues nesta etapa*  
 🔗 [Clique aqui para assistir o Screencast](https://youtu.be/sXgaN3N0s4o)
 
-**Conteúdo abordado no Screencast:**
+*Conteúdo abordado no Screencast:*
 - Apresentação das Histórias do Usuário  
 - Explicação rápida dos protótipos Lo-Fi  
 - Apresentação dos próximos passos do projeto  
 
 </details>
 
-## 🗂️ Entrega 2
+## 🗂 Entrega 2
 
 <details>
 <summary><b>📖 Histórias Implementadas:</b></summary>
 
-- **Cadastro de Moradores e Dependentes** (com persistência em memória)
-- **Reserva de Áreas Comuns** (com persistência em memória)
+- *Cadastro de Moradores e Dependentes* (com persistência em memória)
+- *Reserva de Áreas Comuns* (com persistência em memória)
 </details>
 
 <details>
-<summary><b>🛠️ Ambiente de Versionamento</b></summary>
+<summary><b>🛠 Ambiente de Versionamento</b></summary>
 
 - Ambiente versionado no GitHub com commits frequentes (mínimo semanal).
 
@@ -137,7 +265,7 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 <details>
 <summary><b>🐞 Issue/Bug Tracker</b></summary>
 
-⚒️ Utilizamos o ClickUp como ferramenta de gerenciamento de Bugs e Tarefas
+⚒ Utilizamos o ClickUp como ferramenta de gerenciamento de Bugs e Tarefas
 
 - [Visualizar o Issue Tracker atualizado aqui](./entregas/issue_tracker.png)
 </details>
@@ -145,24 +273,76 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 <details>
 <summary><b>🎥 Screencast de Demonstração</b></summary>
 
-▶️ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
+▶ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
 
 🔗 [Clique aqui para assistir](https://youtu.be/sGfDrOjskvE)
 </details>
 
 ---
 
-## 🗂️ Entrega 3
+## 🗂 Entrega 3
 
 <details>
 <summary><b>📖 Histórias Implementadas:</b></summary>
 
-- **Reportar problemas de manutenção** 
-- **Agendar assembleias e reuniões** 
+- *Reportar problemas de manutenção* 
+- *Agendar assembleias e reuniões* 
 </details>
 
 <details>
-<summary><b>🛠️ Ambiente de Versionamento</b></summary>
+<summary><b>🛠 Ambiente de Versionamento</b></summary>
+
+- Ambiente versionado no GitHub com commits frequentes (mínimo semanal).
+
+🔗 [Acesse o histórico de commits aqui](https://github.com/guttinue/condominium/commits/main)
+</details>
+
+
+<details>
+<summary><b>📊 Diagrama de Classes Completo</b></summary>
+ 
+🔗 [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagrama_de_classes_new.drawio.png)
+</details>
+
+<details>
+<summary><b>🐞 Issue/Bug Tracker</b></summary>
+
+⚒ [Clique aqui para visualizar o Issue Tracker atualizado aqui](https://github.com/guttinue/condominium/issues)
+</details>
+
+<details>
+<summary><b>▶ Screencast</b></summary>
+
+▶ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
+
+🔗 [Clique aqui para assistir](https://www.youtube.com/watch?v=xYrWPnL8QkA)
+</details>
+
+<details>
+<summary><b>📝 Testes Automatizados</b></summary>
+
+
+📝 Assista ao vídeo de testes automzatizados no nosso sistema utilizando o Maven
+
+🔗 [Clique aqui para assistir](https://www.youtube.com/watch?v=mtcnFiv77g8)
+</details>
+
+---
+
+## 🗂 Entrega 4
+
+<details>
+<summary><b>📖 Histórias Implementadas:</b></summary>
+
+- *Registro de visistantes no condomínio* 
+- *Cadastro de veículos de moradores*
+- *Registro de pagamentos das taxas condominiais*
+
+🔗 [Clique aqui para vizualizar as historias no formato BDD](https://docs.google.com/document/d/1atD3BnABAXsUcRFY7HiJjJL5QWME2WjqwFCLNFSzlHs/edit?usp=sharing)
+</details>
+
+<details>
+<summary><b>🛠 Ambiente de Versionamento</b></summary>
 
 - Ambiente versionado no GitHub com commits frequentes (mínimo semanal).
 
@@ -173,29 +353,31 @@ O **Sistema de Gestão Condominial** é uma aplicação Java orientada a objetos
 <details>
 <summary><b>📊 Diagrama de Classes Completo</b></summary>
 
-- [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagrama_de_classes_new.drawio.png)
+- [Clique aqui para visualizar o Diagrama de Classes em Alta Resolução](./entregas/diagramaAtualizado.png)
 </details>
 
 <details>
 <summary><b>🐞 Issue/Bug Tracker</b></summary>
+ 
+⚒ [Clique aqui para visualizar o Issue Tracker atualizado aqui](https://github.com/guttinue/condominium/issues)
 
-⚒️ Utilizamos o ClickUp como ferramenta de gerenciamento de Bugs e Tarefas
-
-- [Visualizar o Issue Tracker atualizado aqui](./entregas/imagem_2025-04-29_145548945.png)
 </details>
 
 <details>
-<summary><b>▶️ Screencast</b></summary>
+<summary><b>▶ Screencast</b></summary>
 
-▶️ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
+▶ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
 
-🔗 [Clique aqui para assistir](https://www.youtube.com/watch?v=xYrWPnL8QkA)
+🔗 [Clique aqui para assistir]()
 </details>
 
 <details>
 <summary><b>📝 Testes Automatizados</b></summary>
 
+
+
+
 📝 Assista ao vídeo de testes automzatizados no nosso sistema utilizando o Maven
 
-🔗 [Clique aqui para assistir](https://www.youtube.com/watch?v=mtcnFiv77g8)
+🔗 [Clique aqui para assistir]()
 </details>
