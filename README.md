@@ -114,42 +114,32 @@ mvn spring-boot:run
 
 ---
 
-### 🧪 Acessando o Banco de Dados H2 (Durante a Execução)
+### 🧪 Acessando o Banco de Dados H2 (primeira execução)
 
-Este projeto utiliza um banco de dados H2 em memória. Os dados são reiniciados a cada execução, mas podem ser preenchidos automaticamente via `data.sql`.
+Com o H2 configurado para modo arquivo, os dados persistirão entre as reinicializações da aplicação. Para acessar o console H2 e inspecionar os dados:
 
-#### 1. Ative o console H2 no `application.properties`:
+#### 1. Certifique-se de que as seguintes propriedades estão ativas no application.properties:
 
 ```properties
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
+spring.datasource.url=jdbc:h2:file:./data/condominiumdb
+spring.jpa.hibernate.ddl-auto=create 
+spring.sql.init.mode=always 
+spring.jpa.defer-datasource-initialization=true
 ```
 
-#### 2. Acesse no navegador:
-
-```
-http://localhost:8080/h2-console
-```
-
-#### 3. Dados de acesso padrão:
-
-- **Driver Class**: `org.h2.Driver`
-- **JDBC URL**: `jdbc:h2:mem:condo`
-- **User Name**: `sa`
-- **Password**: *(vazio ou definido no application.properties)*
-
-Clique em **Connect** para acessar e consultar os dados com SQL.
-
----
 
 ### 🗃️ Dados Iniciais
 
-O arquivo `src/main/resources/data.sql` é executado automaticamente se a configuração estiver assim:
+Após a primeira execução, altere as propriedades em application.proprieties  
 
 ```properties
-spring.jpa.hibernate.ddl-auto=create
-spring.jpa.defer-datasource-initialization=true
+spring.datasource.url=jdbc:h2:file:./data/condominiumdb
+spring.jpa.hibernate.ddl-auto=update # ou validate
+spring.sql.init.mode=never # ou embedded, ou remova/renomeie data.sql se não quiser que rode mais
+spring.jpa.defer-datasource-initialization=tru
 ```
+
+Depois disso, clique em maven e escolha a opçãao "Reload All Maven Projects"
 
 Ele popula o sistema com exemplos de:
 - Condomínios
