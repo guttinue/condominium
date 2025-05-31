@@ -358,8 +358,8 @@ condominium/
 
 ▶ Assista o Screencast no YouTube mostrando o uso do sistema implementado nesta entrega:
 
-🔗 [Clique aqui para assistir](https://youtu.be/6Z-DswcfUAg)\n
-🔗 [Clique aqui para assistir](https://youtu.be/jvuRR2rQ7Bk)\n
+🔗 [Clique aqui para assistir](https://youtu.be/6Z-DswcfUAg)
+🔗 [Clique aqui para assistir](https://youtu.be/jvuRR2rQ7Bk)
 🔗 [Clique aqui para assistir](https://youtu.be/Urv2Q1oAKY0)
 </details>
 
