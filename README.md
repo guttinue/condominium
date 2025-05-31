@@ -59,95 +59,127 @@ O *Sistema de Gestão Condominial* é uma aplicação Java orientada a objetos q
 
 Esta seção guiará você na configuração do ambiente necessário para compilar e executar o projeto.
 
-### Pré-requisitos
+### ✅ Pré-requisitos
 
 Antes de começar, certifique-se de ter instalado em seu sistema:
 
-- *Java Development Kit (JDK):* Versão 21 ou superior. ([Oracle JDK](https://www.oracle.com/java/technologies/downloads/) ou [OpenJDK](https://openjdk.java.net/))
-- *Apache Maven:* Versão 3.6.x ou superior. ([Download Maven](https://maven.apache.org/download.cgi))
-- *Git:* Para clonar o repositório. ([Download Git](https://git-scm.com/downloads))
-- *IDE (Opcional, mas recomendado):*
-    - IntelliJ IDEA (Community ou Ultimate)
-    - Visual Studio Code com as extensões Java e Spring Boot
-    - Eclipse IDE for Java Developers
-
-### Passos para Configuração e Execução
-
-1.  *Clonar o Repositório:*
-    Abra seu terminal ou Git Bash e clone o projeto do GitHub:
-    bash
-    git clone https://github.com/guttinue/condominium
-    cd condominium # Navegue para a pasta do projeto
-    
-
-2.  *Compilar o Projeto com Maven:*
-    No terminal, dentro da pasta raiz do projeto (condominium), execute o comando Maven para limpar o projeto, baixar as dependências e compilar o código:
-    bash
-    mvn clean install
-    
-    Este comando também rodará os testes automatizados. Se algum teste falhar, o build pode ser interrompido. Para pular os testes durante o build (não recomendado para verificação de integridade, mas útil para setup rápido):
-    bash
-    mvn clean install -DskipTests
-    
-
-3.  *Executar a Aplicação:*
-    Após o build bem-sucedido, um arquivo .jar executável será gerado na pasta target/. Você pode executar a aplicação de linha de comando (CLI) usando:
-    bash
-    java -jar target/condominium-0.0.1-SNAPSHOT.jar 
-    
-    *(O nome do arquivo JAR pode variar ligeiramente dependendo da versão definida no pom.xml. Verifique o nome exato na pasta target/ após o build).*
-
-    Alternativamente, você pode rodar a aplicação diretamente via Maven (útil durante o desenvolvimento):
-    bash
-    mvn spring-boot:run
-    
-
-### Acessando o Banco de Dados H2 (Durante a Execução)
-
-Este projeto utiliza um banco de dados H2 em memória, o que significa que os dados são perdidos quando a aplicação é encerrada, mas são recarregados a partir do data.sql a cada inicialização (se spring.jpa.hibernate.ddl-auto for create ou create-drop).
-
-Para inspecionar o banco de dados enquanto a aplicação está rodando:
-
-1.  Certifique-se de que o console H2 está habilitado no seu arquivo src/main/resources/application.properties:
-    properties
-    spring.h2.console.enabled=true
-    spring.h2.console.path=/h2-console # Caminho para acessar o console
-    
-2.  Com a aplicação rodando, abra seu navegador e acesse: http://localhost:8080/h2-console (ajuste a porta se a sua aplicação rodar em outra).
-3.  Na tela de login do H2 Console, utilize as seguintes informações (ou as que estiverem no seu application.properties):
-    * *Driver Class:* org.h2.Driver
-    * *JDBC URL:* jdbc:h2:mem:condo
-    * *User Name:* sa
-    * *Password:* (deixe em branco ou use a senha definida em application.properties)
-4.  Clique em "Connect". Agora você pode executar queries SQL para verificar as tabelas e os dados.
-
-### Dados Iniciais
-
-O arquivo src/main/resources/data.sql é responsável por popular o banco de dados com dados iniciais toda vez que a aplicação inicia e o schema é criado/atualizado (dependendo da configuração spring.jpa.hibernate.ddl-auto e spring.jpa.defer-datasource-initialization=true). Ele contém exemplos de condomínio, áreas comuns, usuários (moradores, síndico, funcionário) e seus papéis.
+- **Java Development Kit (JDK)**: Versão 21 ou superior  
+  [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) ou [OpenJDK](https://openjdk.org/)
+- **Apache Maven**: Versão 3.6.x ou superior  
+  [Download Maven](https://maven.apache.org/download.cgi)
+- **Git**: Para clonar o repositório  
+  [Download Git](https://git-scm.com/downloads)
+- **IDE (opcional, mas recomendado)**:
+  - IntelliJ IDEA (Community ou Ultimate)
+  - Visual Studio Code com extensões de Java e Spring Boot
+  - Eclipse IDE for Java Developers
 
 ---
 
-## 📂 Estrutura do Projeto (Visão Simplificada)
+### ⚙️ Passos para Configuração e Execução
 
+#### 1. Clonar o Repositório
+
+```bash
+git clone https://github.com/guttinue/condominium
+cd condominium
+```
+
+#### 2. Compilar o Projeto com Maven
+
+```bash
+mvn clean install
+```
+
+> Este comando também executa os testes automatizados.  
+> Para compilar rapidamente sem rodar os testes:
+
+```bash
+mvn clean install -DskipTests
+```
+
+#### 3. Executar a Aplicação
+
+Após o build, execute o JAR gerado:
+
+```bash
+java -jar target/condominium-0.0.1-SNAPSHOT.jar
+```
+
+Ou, durante o desenvolvimento, execute via Maven:
+
+```bash
+mvn spring-boot:run
+```
+
+---
+
+### 🧪 Acessando o Banco de Dados H2 (Durante a Execução)
+
+Este projeto utiliza um banco de dados H2 em memória. Os dados são reiniciados a cada execução, mas podem ser preenchidos automaticamente via `data.sql`.
+
+#### 1. Ative o console H2 no `application.properties`:
+
+```properties
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+```
+
+#### 2. Acesse no navegador:
+
+```
+http://localhost:8080/h2-console
+```
+
+#### 3. Dados de acesso padrão:
+
+- **Driver Class**: `org.h2.Driver`
+- **JDBC URL**: `jdbc:h2:mem:condo`
+- **User Name**: `sa`
+- **Password**: *(vazio ou definido no application.properties)*
+
+Clique em **Connect** para acessar e consultar os dados com SQL.
+
+---
+
+### 🗃️ Dados Iniciais
+
+O arquivo `src/main/resources/data.sql` é executado automaticamente se a configuração estiver assim:
+
+```properties
+spring.jpa.hibernate.ddl-auto=create
+spring.jpa.defer-datasource-initialization=true
+```
+
+Ele popula o sistema com exemplos de:
+- Condomínios
+- Áreas comuns
+- Usuários (moradores, síndico, funcionário)
+
+---
+
+### 📂 Estrutura do Projeto (Visão Simplificada)
+
+```
 condominium/
 ├── src/
 │   ├── main/
 │   │   ├── java/
-│   │   │   └── com/condo/  # Pacote principal da aplicação
-│   │   │       ├── CondominiumCliApplication.java # Classe principal Spring Boot
-│   │   │       ├── domain/         # Entidades JPA (Morador, Reserva, etc.)
-│   │   │       ├── menu/           # Classes de interface com o usuário (CLI)
-│   │   │       ├── repository/     # Interfaces Spring Data JPA Repositories
-│   │   │       └── service/        # Classes de serviço com lógica de negócio
+│   │   │   └── com/condo/
+│   │   │       ├── CondominiumCliApplication.java
+│   │   │       ├── domain/
+│   │   │       ├── menu/
+│   │   │       ├── repository/
+│   │   │       └── service/
 │   │   └── resources/
-│   │       ├── application.properties # Configurações da aplicação
-│   │       ├── data.sql            # Script para popular dados iniciais
+│   │       ├── application.properties
+│   │       └── data.sql
 │   └── test/
 │       └── java/
-│           └── com/condo/      # Testes unitários e de integração
-├── pom.xml                 # Arquivo de configuração do Maven
-└── README.md               # Este arquivo
-
+│           └── com/condo/
+├── pom.xml
+└── README.md
+```
 
 ---
 ## 🗂 Entrega 01
