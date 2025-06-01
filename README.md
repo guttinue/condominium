@@ -371,5 +371,5 @@ condominium/
 
 📝 Assista ao vídeo de testes automzatizados no nosso sistema utilizando o Maven
 
-🔗 [Clique aqui para assistir]()
+🔗 [Clique aqui para assistir](https://www.youtube.com/watch?v=Z4oWA0E49xI)
 </details>
